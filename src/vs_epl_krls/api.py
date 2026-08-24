@@ -18,6 +18,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from .decision import S10DecisionService
 from .product import S10ProductService
 
 
@@ -26,6 +27,19 @@ LOGGER = logging.getLogger("vs_epl_krls.service")
 
 class CostScenarioRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    volume_liters: float = Field(default=200_000.0, gt=0, le=50_000_000)
+
+
+class DecisionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    volume_liters: float = Field(default=200_000.0, gt=0, le=50_000_000)
+    # Omitir a UF pede a decisao nacional; informa-la pede a do estado.
+    uf: str | None = Field(default=None, min_length=2, max_length=2, pattern=r"^[A-Za-z]{2}$")
+
+
+class BasisRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    uf: str = Field(min_length=2, max_length=2, pattern=r"^[A-Za-z]{2}$")
     volume_liters: float = Field(default=200_000.0, gt=0, le=50_000_000)
 
 
@@ -125,6 +139,7 @@ def create_app(
     service: S10ProductService,
     *,
     settings: APISettings | None = None,
+    decision_service: S10DecisionService | None = None,
 ) -> FastAPI:
     """Create a read-only API around an already hash-verified release."""
 
@@ -228,6 +243,9 @@ def create_app(
                 "models": "/v1/models",
                 "evidence": "/v1/evidence",
                 "cost_scenario": "/v1/scenarios/cost",
+                "decision": "/v1/decision",
+                "basis": "/v1/basis",
+                "governance": "/v1/governance",
                 "readiness": "/v1/health/ready",
                 "metrics": "/metrics",
                 "openapi_contract": "/openapi.json",
@@ -272,6 +290,39 @@ def create_app(
         if not report.serving_ready:
             raise HTTPException(status_code=503, detail="forecast release is not current")
         return service.model_catalog()
+
+    @application.post("/v1/decision", tags=["decision support"], dependencies=[Depends(authorize)])
+    def decision(payload: DecisionRequest) -> dict[str, object]:
+        if decision_service is None:
+            raise HTTPException(status_code=404, detail="decision layer is not configured")
+        report = service.status()
+        if not report.serving_ready:
+            raise HTTPException(status_code=503, detail="forecast release is not current")
+        try:
+            return decision_service.decide(payload.volume_liters, uf=payload.uf).as_dict()
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @application.post("/v1/basis", tags=["decision support"], dependencies=[Depends(authorize)])
+    def basis(payload: BasisRequest) -> dict[str, object]:
+        """Quanto custa orcar pela media nacional em vez da serie do estado."""
+
+        if decision_service is None:
+            raise HTTPException(status_code=404, detail="decision layer is not configured")
+        try:
+            return decision_service.basis(payload.uf, payload.volume_liters).as_dict()
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @application.get("/v1/governance", tags=["governance"], dependencies=[Depends(authorize)])
+    def governance() -> dict[str, object]:
+        if decision_service is None:
+            raise HTTPException(status_code=404, detail="decision layer is not configured")
+        return decision_service.governance()
 
     @application.get("/metrics", response_class=PlainTextResponse, include_in_schema=False)
     def prometheus_metrics() -> str:

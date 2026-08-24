@@ -82,8 +82,15 @@ def run(args: argparse.Namespace) -> dict[str, object]:
             "residual_persistence"
         ].to_numpy(float),
     ).fit(history)
+    # Nasce calibrada: sem aquecer, a release comecaria no nivel nominal e levaria
+    # dezenas de semanas para descobrir o que a janela de residuos ja diz.
+    warm_alpha = bundle.warm_start_interval_alpha()
     artifact = bundle.save(args.artifact)
     before = bundle.predict_next()
+    print(
+        f"nivel do intervalo aquecido: alpha {warm_alpha:.4f} "
+        f"(cobertura nominal implicita {1 - warm_alpha:.1%})"
+    )
     load_started = time.perf_counter_ns()
     restored = S10ProductionForecaster.load(artifact)
     load_ms = (time.perf_counter_ns() - load_started) / 1e6

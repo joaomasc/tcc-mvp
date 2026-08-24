@@ -83,7 +83,28 @@ class S10HealthReport:
 class S10ProductionForecaster:
     """Serializable, thread-safe S10 one-week forecasting bundle."""
 
-    artifact_version = "1.1.0"
+    artifact_version = "1.2.0"
+
+    #: Contratos que o carregador aceita.  A 1.1.0 continua servivel: ela nao tem
+    #: estado conformal, e sem ele o intervalo cai exatamente no quantil fixo de
+    #: antes — previsao identica, byte a byte.
+    supported_artifact_versions = ("1.1.0", "1.2.0")
+
+    #: Nivel nominal do intervalo servido.
+    interval_nominal_coverage = 0.80
+
+    #: Passo do ajuste conformal adaptativo (Gibbs e Candes, 2021).  O intervalo
+    #: do bundle era montado com quantis fixos 0,10/0,90 e entregou **92,3% de
+    #: cobertura para um nominal de 80%** no holdout.  Banda larga demais nao e
+    #: seguranca gratuita: ela desloca o cenario P90 e distorce o custo aparente
+    #: de antecipar.  Aqui o nivel de miscobertura passa a ser aprendido semana a
+    #: semana, com os quantis do residuo continuando a vir da janela movel.
+    interval_gamma = 0.02
+
+    #: Limites de ``alpha``.  O artigo permite intervalo infinito quando alpha
+    #: chega a zero; num produto isso e inutil, entao o valor e limitado e cada
+    #: passo em que o limite atuou fica contado.
+    interval_alpha_bounds = (0.02, 0.50)
     component_order = ("ARIMA", "Ridge", "persistencia", "VS-ePL-KRLS")
 
     def __init__(
@@ -280,6 +301,49 @@ class S10ProductionForecaster:
         recent = changes[-156:] if changes.size > 156 else changes
         return float(max(0.10, 2.0 * np.quantile(recent, 0.995)))
 
+    def warm_start_interval_alpha(self) -> float:
+        """Aquece o nivel do intervalo com os residuos que o bundle ja carrega.
+
+        Sem isto, uma release nova comecaria no nivel nominal e levaria dezenas de
+        semanas para descobrir sozinha o que a evidencia ja diz: que o quantil
+        fixo cobre demais.  O aquecimento roda o mesmo passo conformal sobre a
+        janela de calibracao, em ordem, cada semana usando apenas os residuos
+        anteriores a ela.  Nada de futuro entra.
+        """
+
+        residuals = np.asarray(self.calibration_residuals, dtype=float)
+        residuals = residuals[np.isfinite(residuals)]
+        if residuals.size < 40:
+            return self._interval_alpha()
+
+        target_alpha = 1.0 - self.interval_nominal_coverage
+        low_bound, high_bound = self.interval_alpha_bounds
+        alpha = target_alpha
+        warmup = 20
+        for index in range(warmup, residuals.size):
+            past = residuals[:index]
+            tail = alpha / 2.0
+            low, high = np.quantile(past, [tail, 1.0 - tail])
+            covered = bool(low <= residuals[index] <= high)
+            alpha = float(
+                np.clip(
+                    alpha + self.interval_gamma * (target_alpha - (0.0 if covered else 1.0)),
+                    low_bound,
+                    high_bound,
+                )
+            )
+        self.interval_alpha_ = alpha
+        self.interval_alpha_warm_started_ = True
+        return alpha
+
+    def _interval_alpha(self) -> float:
+        """Nivel de miscobertura corrente, com o padrao dos artefatos antigos."""
+
+        alpha = getattr(self, "interval_alpha_", None)
+        if alpha is None or not np.isfinite(alpha):
+            return 1.0 - self.interval_nominal_coverage
+        return float(alpha)
+
     def predict_next(self) -> S10Forecast:
         """Forecast the next weekly S10 observation without changing state."""
 
@@ -303,9 +367,10 @@ class S10ProductionForecaster:
                 else self.calibration_residuals
             )
             if interval_residuals.size >= 20:
-                q10, q90 = np.quantile(interval_residuals, [0.10, 0.90])
-                p10 = max(0.0, min(point, float(point + q10)))
-                p90 = max(point, float(point + q90))
+                tail = self._interval_alpha() / 2.0
+                low, high = np.quantile(interval_residuals, [tail, 1.0 - tail])
+                p10 = max(0.0, min(point, float(point + low)))
+                p90 = max(point, float(point + high))
             else:
                 p10 = point
                 p90 = point
@@ -379,9 +444,21 @@ class S10ProductionForecaster:
             self.last_cadence_days_ = cadence_days
             self.n_online_updates_ += 1
             self.last_forecast_residual_ = float(value - issued_forecast.point)
-            self.online_interval_hits_.append(
-                bool(issued_forecast.p10 <= value <= issued_forecast.p90)
+            covered = bool(issued_forecast.p10 <= value <= issued_forecast.p90)
+            self.online_interval_hits_.append(covered)
+            # Passo conformal adaptativo: cobriu, alpha sobe e a banda encolhe;
+            # furou, alpha cai e a banda abre.  A garantia e de longo prazo e nao
+            # supoe nada sobre a distribuicao — que e a hipotese que uma serie de
+            # combustivel viola o tempo todo.
+            target_alpha = 1.0 - self.interval_nominal_coverage
+            proposed = self._interval_alpha() + self.interval_gamma * (
+                target_alpha - (0.0 if covered else 1.0)
             )
+            low_bound, high_bound = self.interval_alpha_bounds
+            clipped = float(np.clip(proposed, low_bound, high_bound))
+            if clipped != proposed:
+                self.interval_alpha_clips_ = getattr(self, "interval_alpha_clips_", 0) + 1
+            self.interval_alpha_ = clipped
             self.online_absolute_errors_.append(abs(self.last_forecast_residual_))
             self.online_interval_hits_ = self.online_interval_hits_[
                 -self.calibration_window :
@@ -482,6 +559,10 @@ class S10ProductionForecaster:
             ),
             "calibration_window": self.calibration_window,
             "last_forecast_residual": self.last_forecast_residual_,
+            "interval_alpha": round(self._interval_alpha(), 6),
+            "interval_alpha_warm_started": bool(
+                getattr(self, "interval_alpha_warm_started_", False)
+            ),
             "interval_monitor_samples": len(self.online_interval_hits_),
             "empirical_interval_coverage": (
                 float(np.mean(self.online_interval_hits_))
@@ -536,7 +617,7 @@ class S10ProductionForecaster:
         model = joblib.load(source)
         if not isinstance(model, cls):
             raise TypeError("artifact is not an S10ProductionForecaster")
-        if getattr(model, "artifact_version_", None) != cls.artifact_version:
+        if getattr(model, "artifact_version_", None) not in cls.supported_artifact_versions:
             raise RuntimeError("unsupported artifact version")
         model._require_fitted()
         return model

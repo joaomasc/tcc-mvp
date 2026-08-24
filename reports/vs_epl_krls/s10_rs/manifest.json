@@ -1,0 +1,250 @@
+{
+  "scope": "Diesel B S10, revenda media estadual da ANP — RS",
+  "holdout_evaluated": false,
+  "development_end_date": "2024-08-11",
+  "folds": [
+    {
+      "fold_id": "validation_1",
+      "validation_start": 441,
+      "validation_end": 493
+    },
+    {
+      "fold_id": "validation_2",
+      "validation_start": 493,
+      "validation_end": 545
+    },
+    {
+      "fold_id": "validation_3",
+      "validation_start": 545,
+      "validation_end": 597
+    }
+  ],
+  "provenance": {
+    "uf": "RS",
+    "offline": true,
+    "sources": []
+  },
+  "models": [
+    "persistencia",
+    "rs_direto",
+    "nacional+carrego",
+    "nacional+spread",
+    "nacional+spread+ancora"
+  ],
+  "summary": [
+    {
+      "modelo": "persistencia",
+      "mae": 0.0597307692,
+      "rmse": 0.1274827791,
+      "mae_quiet": 0.0085362319,
+      "mae_event": 0.1003333333,
+      "rmse_quiet": 0.0108887657,
+      "rmse_event": 0.170432479,
+      "directional_accuracy": 0.0,
+      "n": 156,
+      "n_quiet": 69,
+      "n_event": 87,
+      "largest_error_share_of_sse": 0.3026778002,
+      "net_savings_brl": 0.0,
+      "annualized_savings_brl": 0.0,
+      "annualized_ci90": [
+        0.0,
+        0.0
+      ],
+      "triggered": 0,
+      "precision": null,
+      "largest_event_share": null,
+      "weeks_replayed": 154,
+      "contiguous_blocks": 2
+    },
+    {
+      "modelo": "rs_direto",
+      "mae": 0.0594371476,
+      "rmse": 0.1196985712,
+      "mae_quiet": 0.0175664013,
+      "mae_event": 0.0926449809,
+      "rmse_quiet": 0.0226643866,
+      "rmse_event": 0.1590086076,
+      "directional_accuracy": 0.652173913,
+      "n": 156,
+      "n_quiet": 69,
+      "n_event": 87,
+      "largest_error_share_of_sse": 0.2925751953,
+      "net_savings_brl": 38088.4615384615,
+      "annualized_savings_brl": 12861.038961039,
+      "annualized_ci90": [
+        4133.3766233766,
+        23012.9220779221
+      ],
+      "triggered": 56,
+      "precision": 0.5178571429,
+      "largest_event_share": 0.2653741291,
+      "weeks_replayed": 154,
+      "contiguous_blocks": 2
+    },
+    {
+      "modelo": "nacional+carrego",
+      "mae": 0.0575410789,
+      "rmse": 0.113998631,
+      "mae_quiet": 0.0193261256,
+      "mae_event": 0.0878494901,
+      "rmse_quiet": 0.0254328134,
+      "rmse_event": 0.1509622841,
+      "directional_accuracy": 0.6594202899,
+      "n": 156,
+      "n_quiet": 69,
+      "n_event": 87,
+      "largest_error_share_of_sse": 0.2787906691,
+      "net_savings_brl": 43015.3846153846,
+      "annualized_savings_brl": 14524.6753246753,
+      "annualized_ci90": [
+        5903.961038961,
+        24530.8441558442
+      ],
+      "triggered": 53,
+      "precision": 0.5849056604,
+      "largest_event_share": 0.2349785408,
+      "weeks_replayed": 154,
+      "contiguous_blocks": 2
+    },
+    {
+      "modelo": "nacional+spread",
+      "mae": 0.0572936231,
+      "rmse": 0.1133080943,
+      "mae_quiet": 0.0198316885,
+      "mae_event": 0.0870048125,
+      "rmse_quiet": 0.0264978163,
+      "rmse_event": 0.149880938,
+      "directional_accuracy": 0.6956521739,
+      "n": 156,
+      "n_quiet": 69,
+      "n_event": 87,
+      "largest_error_share_of_sse": 0.275462844,
+      "net_savings_brl": 46292.3076923077,
+      "annualized_savings_brl": 15631.1688311688,
+      "annualized_ci90": [
+        6712.012987013,
+        26292.6623376623
+      ],
+      "triggered": 60,
+      "precision": 0.6,
+      "largest_event_share": 0.2183449651,
+      "weeks_replayed": 154,
+      "contiguous_blocks": 2
+    },
+    {
+      "modelo": "nacional+spread+ancora",
+      "mae": 0.0574026463,
+      "rmse": 0.1125851529,
+      "mae_quiet": 0.0216516005,
+      "mae_event": 0.0857569241,
+      "rmse_quiet": 0.0287025931,
+      "rmse_event": 0.1485763908,
+      "directional_accuracy": 0.6884057971,
+      "n": 156,
+      "n_quiet": 69,
+      "n_event": 87,
+      "largest_error_share_of_sse": 0.2683931509,
+      "net_savings_brl": 46892.3076923077,
+      "annualized_savings_brl": 15833.7662337662,
+      "annualized_ci90": [
+        6884.025974026,
+        26658.8961038961
+      ],
+      "triggered": 59,
+      "precision": 0.593220339,
+      "largest_event_share": 0.2155511811,
+      "weeks_replayed": 154,
+      "contiguous_blocks": 2
+    }
+  ],
+  "mae_vs_state_direct": {
+    "persistencia": {
+      "mean_difference": 0.0002936216623740192,
+      "ci90_low": -0.0021859423805706663,
+      "ci90_high": 0.002813870043157295,
+      "pvalue_not_better": 0.589,
+      "n": 156
+    },
+    "nacional+carrego": {
+      "mean_difference": -0.001896068707969394,
+      "ci90_low": -0.005701009101050405,
+      "ci90_high": 0.0018064270675276703,
+      "pvalue_not_better": 0.2005,
+      "n": 156
+    },
+    "nacional+spread": {
+      "mean_difference": -0.0021435245078959254,
+      "ci90_low": -0.005912200941080086,
+      "ci90_high": 0.0015100708862638883,
+      "pvalue_not_better": 0.1745,
+      "n": 156
+    },
+    "nacional+spread+ancora": {
+      "mean_difference": -0.0020345012452746944,
+      "ci90_low": -0.006061621055024232,
+      "ci90_high": 0.0018310822824327514,
+      "pvalue_not_better": 0.1965,
+      "n": 156
+    }
+  },
+  "spread_model": {
+    "fitted": true,
+    "n_train": 490,
+    "reversion_kappa": 0.067725,
+    "half_life_weeks": 9.88,
+    "target_mean": -0.067037,
+    "anchor_weight": -0.010183,
+    "residual_sigma": 0.027244,
+    "uses_producer_anchor": true
+  },
+  "current_state": {
+    "date": "2026-08-16",
+    "state_price": 6.58,
+    "national_price": 6.89,
+    "spread": -0.3099999999999996,
+    "spread_z": -2.955021563579854
+  },
+  "spread_opportunity": {
+    "available": true,
+    "n_weeks": 702,
+    "horizon_weeks": 12,
+    "current_spread": -0.3099999999999996,
+    "current_z": -2.955021563579854,
+    "current_percentile": 0.005698005698005698,
+    "weeks_at_current_level": 7,
+    "independent_episodes_at_current_level": 3,
+    "levels": [
+      {
+        "quantile": 0.02,
+        "threshold": -0.2600000000000007,
+        "weeks": 15,
+        "independent_episodes": 3,
+        "mean_change_after_horizon": 0.13900000000000023,
+        "share_positive": 1.0
+      },
+      {
+        "quantile": 0.05,
+        "threshold": -0.2099999999999999,
+        "weeks": 38,
+        "independent_episodes": 3,
+        "mean_change_after_horizon": 0.09374074074074079,
+        "share_positive": 0.8888888888888888
+      },
+      {
+        "quantile": 0.1,
+        "threshold": -0.15089999999999984,
+        "weeks": 71,
+        "independent_episodes": 6,
+        "mean_change_after_horizon": 0.05947457627118646,
+        "share_positive": 0.7796610169491526
+      }
+    ]
+  },
+  "basis_error": {
+    "window_weeks": 52,
+    "mean_absolute_spread_brl_per_liter": 0.13999999999999996,
+    "monthly_liters": 200000.0,
+    "annual_budget_error_brl": 335999.9999999999
+  }
+}

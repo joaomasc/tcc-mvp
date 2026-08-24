@@ -38,6 +38,7 @@ from vs_epl_krls.passthrough import (  # noqa: E402
     build_parity_panel,
 )
 from vs_epl_krls.procurement import simulate_one_week_prebuy  # noqa: E402
+from vs_epl_krls.selection import pinned_validation_folds  # noqa: E402
 
 HOLDOUT_SIZE = 104
 VALIDATION_SIZE = 52
@@ -68,15 +69,27 @@ SPECS: dict[str, tuple[str, ...]] = {
 }
 
 
-def windows(n: int) -> tuple[list[tuple[int, int]], tuple[int, int]]:
-    development_end = n - HOLDOUT_SIZE
-    first = development_end - N_FOLDS * VALIDATION_SIZE
-    if first <= 0:
-        raise ValueError("history is too short for the protocol")
-    folds = [
-        (first + i * VALIDATION_SIZE, first + (i + 1) * VALIDATION_SIZE) for i in range(N_FOLDS)
-    ]
-    return folds, (development_end, n)
+def windows(
+    dates: pd.Series,
+) -> tuple[list[tuple[int, int]], tuple[int, int], tuple[int, int]]:
+    """Resolve folds, holdout e cauda prospectiva pelas datas congeladas.
+
+    O corte nao pode depender de ``len(panel)``.  Com o holdout ancorado no fim
+    da serie, cada semana nova publicada pela ANP deslocava as tres janelas: os
+    numeros divulgados deixavam de ser reproduziveis e qualquer reexecucao lia,
+    sem avisar, um holdout diferente do que ja tinha sido lido.
+    """
+
+    pinned = pinned_validation_folds(
+        dates,
+        validation_size=VALIDATION_SIZE,
+        n_folds=N_FOLDS,
+        expected_holdout_size=HOLDOUT_SIZE,
+    )
+    folds = [(fold.validation_start, fold.validation_end) for fold in pinned.folds]
+    holdout = (pinned.holdout.validation_start, pinned.holdout.validation_end)
+    prospective = (pinned.prospective.validation_start, pinned.prospective.validation_end)
+    return folds, holdout, prospective
 
 
 def arima_window(panel: pd.DataFrame, start: int, end: int, *, refit_every: int = 13) -> np.ndarray:
@@ -180,11 +193,21 @@ def main() -> int:
 
     causal = pd.read_csv(args.panel, parse_dates=["date"])
     panel = build_parity_panel(causal)
-    folds, holdout = windows(len(panel))
+    folds, holdout, prospective = windows(panel["date"])
     config = PassThroughConfig()
 
     print(f"painel: {len(panel)} semanas, {panel['date'].min().date()} a "
           f"{panel['date'].max().date()}")
+    print(
+        f"janela congelada: desenvolvimento ate {panel['date'][holdout[0] - 1].date()}, "
+        f"holdout {panel['date'][holdout[0]].date()} a {panel['date'][holdout[1] - 1].date()}"
+    )
+    n_prospective = prospective[1] - prospective[0]
+    if n_prospective:
+        print(
+            f"{n_prospective} semana(s) posteriores ao holdout congelado ficam fora do "
+            "protocolo e so contam como evidencia prospectiva"
+        )
 
     frames = [evaluate(panel, a, b, config, SPECS) for a, b in folds]
     models = [name for name in SPECS if name in frames[0].columns] + ["arima", "persistence"]
@@ -236,6 +259,13 @@ def main() -> int:
         "protocol": "spec chosen on three development folds; holdout read at the end",
         "panel": str(args.panel),
         "n_weeks": int(len(panel)),
+        "window_pinned_by": "calendar dates, not panel length",
+        "pinned_holdout": {
+            "start": str(panel["date"][holdout[0]].date()),
+            "end": str(panel["date"][holdout[1] - 1].date()),
+            "n_weeks": int(holdout[1] - holdout[0]),
+        },
+        "prospective_weeks_outside_protocol": int(prospective[1] - prospective[0]),
         "development_folds": [
             {"start": str(panel["date"][a].date()), "end": str(panel["date"][b - 1].date())}
             for a, b in folds

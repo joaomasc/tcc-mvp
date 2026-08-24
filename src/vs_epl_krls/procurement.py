@@ -36,6 +36,10 @@ class ProcurementBacktest:
     savings_per_liter_consumed_brl: float
     annualized_savings_brl: float
     annualized_savings_ci90_brl: tuple[float, float]
+    #: Economia liquida semana a semana, zero quando a politica nao disparou.
+    #: E a serie que os gates decidiveis reamostram em blocos; sem ela o unico
+    #: numero disponivel seria o total, que nao permite medir incerteza.
+    weekly_net_savings_brl: tuple[float, ...]
     events: tuple[dict[str, object], ...]
 
     def as_dict(self) -> dict[str, object]:
@@ -182,5 +186,6 @@ def simulate_one_week_prebuy(
         savings_per_liter_consumed_brl=total_savings / consumed_liters,
         annualized_savings_brl=float(np.mean(savings) * 52.0),
         annualized_savings_ci90_brl=ci,
+        weekly_net_savings_brl=tuple(float(value) for value in savings),
         events=tuple(events),
     )

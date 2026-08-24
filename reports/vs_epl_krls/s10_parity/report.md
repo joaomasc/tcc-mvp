@@ -164,6 +164,37 @@ evidência, e está registrada apenas para iniciar a contagem prospectiva.
 5. **Não reabrir a busca por arquitetura.** Continua valendo o resultado anterior:
    boosting perde para regressão linear robusta nestes dados.
 
+## 5.1 Registro prospectivo — o mecanismo que faltava
+
+A recomendação 3 acima exige acumular evidência prospectiva, mas até 24/08/2026
+não havia onde acumulá-la: `latest_forecast.json` é sobrescrito a cada execução,
+então a previsão da semana anterior era destruída antes de poder ser comparada
+com o valor oficial.
+
+`23_s10_parity_production.py` agora grava cada previsão em `parity_ledger.jsonl`,
+append-only e encadeado por SHA-256, e liquida a previsão pendente assim que a
+semana-alvo dela aparece no painel. Cada liquidação registra o preço observado, o
+erro do modelo, o erro da persistência, se o intervalo P10–P90 cobriu o
+realizado, e o hash do registro de previsão que está sendo pontuado. Reexecutar o
+script não conta a mesma semana duas vezes.
+
+Contagem atual: **0/26 semanas liquidadas.** O ledger começa na previsão de
+2026-08-23. A observação de 2026-08-16 descrita em §4.2 é anterior ao mecanismo e
+não entra na contagem — ela continua valendo como o que sempre foi, uma
+observação isolada registrada para iniciar o acompanhamento.
+
+Primeira semana em disputa aberta, 2026-08-23, a partir de R$ 6,89/L observados
+em 2026-08-16:
+
+| modelo | previsão | direção | decisão da política |
+|---|---:|---|---|
+| paridade | R$ 6,9121/L (P10–P90 6,8310–7,0078) | alta de R$ 0,0221 | antecipar 11.538 L |
+| ARIMA (produção) | R$ 6,8821/L | queda de R$ 0,0079 | não antecipar |
+
+Os dois discordam do sinal. Uma semana não decide nada, mas discordância
+direcional é o tipo de observação que acumula informação rápido — bem mais rápido
+do que semanas em que ambos acertam por não acontecer nada.
+
 ## 6. Reprodução
 
 ```bash

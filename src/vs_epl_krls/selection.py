@@ -274,7 +274,13 @@ def expanding_validation_folds(
     n_folds: int = 3,
     min_train_size: int = 156,
 ) -> tuple[list[TemporalFold], TemporalFold]:
-    """Create expanding folds and a final untouched holdout."""
+    """Create expanding folds and a final untouched holdout.
+
+    Atencao: esta funcao ancora o corte no fim da serie
+    (``development_end = n_samples - holdout_size``), portanto a janela se move
+    a cada observacao nova.  Para protocolo congelado e reproduzivel use
+    :func:`pinned_validation_folds`, que resolve o corte por data.
+    """
 
     if min(holdout_size, validation_size, n_folds, min_train_size) < 1:
         raise ValueError("fold sizes must be positive")
@@ -292,6 +298,112 @@ def expanding_validation_folds(
     ]
     holdout = TemporalFold("holdout", development_end, n_samples)
     return folds, holdout
+
+
+#: Semanas de competencia que delimitam o holdout congelado do S10.  O corte e
+#: uma data, nao um deslocamento a partir do fim da serie.  Com
+#: ``development_end = n - holdout_size`` cada semana nova publicada pela ANP
+#: movia folds e holdout: os numeros ja divulgados deixavam de ser reproduziveis
+#: e qualquer reexecucao lia, sem avisar, um holdout diferente do que ja tinha
+#: sido lido.  Estas datas sao a mesma janela de 104 semanas-alvo usada pela
+#: evidencia publicada e nao devem ser alteradas.
+S10_HOLDOUT_START = "2024-08-18"
+S10_HOLDOUT_END = "2026-08-09"
+S10_HOLDOUT_SIZE = 104
+
+
+@dataclass(frozen=True)
+class PinnedWindows:
+    """Folds, holdout e cauda prospectiva resolvidos a partir de datas fixas."""
+
+    folds: list[TemporalFold]
+    holdout: TemporalFold
+    prospective: TemporalFold
+    holdout_start_date: str
+    holdout_end_date: str
+
+    @property
+    def development_end(self) -> int:
+        return self.holdout.validation_start
+
+    def as_manifest(self) -> dict[str, object]:
+        return {
+            "pinned_by": "calendar dates, not panel length",
+            "holdout_start_date": self.holdout_start_date,
+            "holdout_end_date": self.holdout_end_date,
+            "development_end_index": self.development_end,
+            "folds": [asdict(fold) for fold in self.folds],
+            "holdout": asdict(self.holdout),
+            "prospective_weeks": self.prospective.validation_end
+            - self.prospective.validation_start,
+        }
+
+
+def _week_index(dates: pd.DatetimeIndex, target: str, label: str) -> int:
+    stamp = pd.Timestamp(target)
+    matches = np.flatnonzero(dates == stamp)
+    if matches.size != 1:
+        raise ValueError(
+            f"{label} {target} nao existe exatamente uma vez na serie "
+            f"({dates[0].date()} a {dates[-1].date()}); a janela congelada nao "
+            "pode ser resolvida"
+        )
+    return int(matches[0])
+
+
+def pinned_validation_folds(
+    dates: Iterable[np.datetime64] | pd.Series | pd.DatetimeIndex,
+    *,
+    holdout_start: str = S10_HOLDOUT_START,
+    holdout_end: str = S10_HOLDOUT_END,
+    validation_size: int = 52,
+    n_folds: int = 3,
+    expected_holdout_size: int | None = S10_HOLDOUT_SIZE,
+) -> PinnedWindows:
+    """Resolve a janela congelada do S10 sobre ``dates``.
+
+    ``dates`` deve conter a data-alvo de cada linha: a semana do painel para
+    tabelas de preco e ``target_dates`` para conjuntos supervisionados.  Dados
+    novos alem de ``holdout_end`` viram cauda prospectiva e nunca entram em
+    desenvolvimento ou holdout.
+    """
+
+    index = pd.DatetimeIndex(pd.Series(list(dates)).astype("datetime64[ns]"))
+    if not index.is_monotonic_increasing:
+        raise ValueError("as datas precisam estar em ordem crescente")
+    if min(validation_size, n_folds) < 1:
+        raise ValueError("fold sizes must be positive")
+
+    start = _week_index(index, holdout_start, "inicio do holdout")
+    last = _week_index(index, holdout_end, "fim do holdout")
+    if last < start:
+        raise ValueError("o fim do holdout precede o inicio")
+    end = last + 1
+    if expected_holdout_size is not None and end - start != expected_holdout_size:
+        raise ValueError(
+            f"holdout congelado tem {end - start} semanas entre {holdout_start} e "
+            f"{holdout_end}, esperado {expected_holdout_size}; a serie tem buracos "
+            "ou frequencia diferente"
+        )
+
+    first_start = start - n_folds * validation_size
+    if first_start < 0:
+        raise ValueError("historico insuficiente antes do holdout congelado")
+    folds = [
+        TemporalFold(
+            fold_id=f"validation_{position + 1}",
+            validation_start=first_start + position * validation_size,
+            validation_end=first_start + (position + 1) * validation_size,
+        )
+        for position in range(n_folds)
+    ]
+    return PinnedWindows(
+        folds=folds,
+        holdout=TemporalFold("holdout", start, end),
+        prospective=TemporalFold("prospective", end, len(index)),
+        holdout_start_date=holdout_start,
+        holdout_end_date=holdout_end,
+    )
 
 
 def _target_values(data: S10Supervised, mode: TargetMode) -> NDArray[np.float64]:

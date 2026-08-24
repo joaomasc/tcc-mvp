@@ -58,6 +58,34 @@ Copy-Item artifacts\s10_production.joblib artifacts\archive\s10_production_PREVI
 
 Valide o JSON, a fonte e `health()`. Promova o canário por uma operação atômica da plataforma somente após aprovação; nunca use um preço ilustrativo como o do comando acima em produção.
 
+Na mesma janela, reemita a previsão do challenger de paridade:
+
+```powershell
+.venv\Scripts\python.exe scripts\21_s10_ingest_causal.py
+.venv\Scripts\python.exe scripts\23_s10_parity_production.py
+```
+
+O script faz três coisas na ordem certa e é idempotente: liquida no `parity_ledger.jsonl` a previsão da semana anterior contra o valor oficial que acabou de chegar, recalibra o nível do intervalo pelas últimas 156 semanas de walk-forward causal, e registra a nova previsão. Reexecutar com saída idêntica não acrescenta registro; reexecutar com artefato diferente registra uma **revisão** encadeada, nunca uma sobrescrita. A contagem prospectiva impressa no fim (`n/26`) é a única que vale para decidir promoção.
+
+Para cada estado servido, na mesma janela:
+
+```powershell
+.venv\Scripts\python.exe scripts\26_s10_rs_regional.py --uf RS
+.venv\Scripts\python.exe scripts\27_s10_rs_production.py --uf RS
+```
+
+O `27` liquida a semana anterior no ledger estadual, recalibra o nível do intervalo e registra a nova previsão, com a mesma idempotência e o mesmo encadeamento de revisões do modelo de paridade. Ele **recusa emitir** se a última semana observada do estado não for a origem da previsão nacional vigente — evitando servir números de períodos diferentes lado a lado.
+
+Suba o serviço declarando os estados: `python scripts\15_s10_service.py --state RS`.
+
+## Verificação de runtime
+
+Antes de servir, confira que o ambiente é o do `requirements-service.lock`. O SHA-256 garante os bytes da release, não o runtime que os interpreta: numpy, pandas, scikit-learn, statsmodels e joblib mudam resultado numérico entre versões. `GET /v1/health/ready` devolve `runtime_verified` e lista cada divergência em `reasons`; status `degraded` com `runtime_mismatch:*` significa que a previsão servida pode não ser a que foi avaliada.
+
+```powershell
+.venv\Scripts\python.exe -m pip install -r requirements-service.lock
+```
+
 ## Telemetria e alertas
 
 Registrar por previsão: timestamp, versão/hash, fingerprint, última data/preço, ponto/P10/P90, todos os componentes, fallback e motivo, latência, erro quando o alvo chegar, cobertura móvel, regras, beta, maior dicionário, clipping e cadência.

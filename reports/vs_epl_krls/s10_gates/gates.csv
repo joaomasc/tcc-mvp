@@ -1,0 +1,14 @@
+pergunta,name,passed,observed,threshold,rationale
+paridade substitui ARIMA?,economia_anual_ci90_positiva,True,923.0769230769239,0.0,"limite inferior de 90% da economia anualizada, bootstrap em blocos; o KPI primario precisa ser positivo mesmo na reamostragem pessimista"
+paridade substitui ARIMA?,economia_supera_incumbente,True,2423.076923076922,0.0,economia liquida acumulada acima da do modelo em producao
+paridade substitui ARIMA?,economia_nao_concentrada,True,0.4404761904761902,0.6,"fracao da economia vinda do maior evento; acima do limite o numero e uma aposta num episodio, nao uma politica"
+paridade substitui ARIMA?,mae_melhor_que_incumbente,False,0.002178285247654339,0.0,topo do IC90 da diferenca de MAE pareada por bloco; exige que ate a reamostragem pessimista favoreca o challenger
+paridade substitui ARIMA?,sem_regressao_em_semana_de_evento,True,-0.08557024710919825,0.05,piora relativa do MAE nas semanas em que o preco realmente se moveu; e onde a decisao de compra acontece
+paridade substitui ARIMA?,sem_regressao_em_semana_parada,False,0.43954112803585565,0.05,piora relativa do MAE nas semanas paradas; modelo que agita preco parado gera gatilho falso e custo de carregamento
+paridade substitui ARIMA?,intervalo_calibrado,True,0.09423076923076923,0.1,"erro de calibracao do intervalo; cobertura muito acima do nominal e intervalo largo demais para decidir, nao seguranca"
+VS-ePL-KRLS promove?,economia_anual_ci90_positiva,False,-5.115907697472721e-12,0.0,"limite inferior de 90% da economia anualizada, bootstrap em blocos; o KPI primario precisa ser positivo mesmo na reamostragem pessimista"
+VS-ePL-KRLS promove?,economia_supera_incumbente,False,-13961.538461538463,0.0,economia liquida acumulada acima da do modelo em producao
+VS-ePL-KRLS promove?,economia_nao_concentrada,False,0.8461538461538493,0.6,"fracao da economia vinda do maior evento; acima do limite o numero e uma aposta num episodio, nao uma politica"
+VS-ePL-KRLS promove?,mae_melhor_que_incumbente,False,0.012428082031481455,0.0,topo do IC90 da diferenca de MAE pareada por bloco; exige que ate a reamostragem pessimista favoreca o challenger
+VS-ePL-KRLS promove?,sem_regressao_em_semana_de_evento,False,0.258967394714019,0.05,piora relativa do MAE nas semanas em que o preco realmente se moveu; e onde a decisao de compra acontece
+VS-ePL-KRLS promove?,sem_regressao_em_semana_parada,False,0.16853683004672582,0.05,piora relativa do MAE nas semanas paradas; modelo que agita preco parado gera gatilho falso e custo de carregamento

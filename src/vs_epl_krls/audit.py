@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+from collections.abc import Mapping
 from typing import Any
 
 
@@ -89,3 +90,96 @@ def append_audit_record(
     verify_audit_ledger(destination)
     return record
 
+
+
+#: Eventos que registram uma previsao emitida e ainda pendente de realizacao.
+FORECAST_EVENTS = ("forecast", "forecast_revision")
+
+
+def settle_pending_forecast(
+    path: str | Path,
+    observed: Mapping[str, float],
+    *,
+    model_name: str = "model",
+) -> dict[str, Any] | None:
+    """Pontua a previsao pendente assim que a semana-alvo dela e observada.
+
+    Sem isto a contagem prospectiva nao existe: o JSON de saida e sobrescrito a
+    cada execucao, entao a previsao da semana passada desaparece antes de poder
+    ser comparada com o realizado.
+
+    ``observed`` mapeia data ISO para o preco oficial daquela semana.  A funcao e
+    idempotente: uma semana ja liquidada nunca e contada de novo, e nada e
+    gravado enquanto o valor oficial nao chega.  Devolve o registro criado, ou
+    ``None`` quando nao havia o que liquidar.
+    """
+
+    records = verify_audit_ledger(path)
+    issued = [record for record in records if record["event"] in FORECAST_EVENTS]
+    if not issued:
+        return None
+    pending = issued[-1]
+    forecast = pending["payload"]["forecast"]
+    target = str(forecast["target_date"])
+    if any(
+        record["event"] == "realized" and str(record["payload"]["target_date"]) == target
+        for record in records
+    ):
+        return None
+    if target not in observed:
+        return None
+
+    actual = float(observed[target])
+    point = float(forecast["point"])
+    origin_price = float(forecast["origin_price"])
+    decision = pending["payload"].get("decision") or {}
+    return append_audit_record(
+        path,
+        event="realized",
+        payload={
+            "model": model_name,
+            "target_date": target,
+            "observed_price": actual,
+            "point": point,
+            "absolute_error": round(abs(actual - point), 6),
+            "persistence_absolute_error": round(abs(actual - origin_price), 6),
+            "interval_covered": bool(
+                float(forecast["lower"]) <= actual <= float(forecast["upper"])
+            ),
+            "recommended_prebuy": bool(decision.get("recommend_prebuy", False)),
+            "forecast_record_hash": pending["record_hash"],
+        },
+    )
+
+
+def record_forecast(
+    path: str | Path, payload: dict[str, Any], *, target_date: str
+) -> dict[str, Any] | None:
+    """Registra a previsao, ou uma revisao quando o artefato daquela semana mudou.
+
+    Reemitir a mesma semana com outro artefato e uma revisao, nao um registro
+    novo: encadear como revisao preserva a contagem prospectiva e deixa a troca
+    visivel em vez de sobrescrever a evidencia anterior.  Reexecutar com saida
+    identica nao acrescenta nada.
+    """
+
+    issued = [
+        record
+        for record in verify_audit_ledger(path)
+        if record["event"] in FORECAST_EVENTS
+        and str(record["payload"]["forecast"]["target_date"]) == str(target_date)
+    ]
+    if not issued:
+        return append_audit_record(path, event="forecast", payload=payload)
+    previous = issued[-1]["payload"].get("artifact_sha256")
+    if previous == payload.get("artifact_sha256"):
+        return None
+    return append_audit_record(
+        path,
+        event="forecast_revision",
+        payload={
+            **payload,
+            "supersedes_artifact_sha256": previous,
+            "supersedes_record_hash": issued[-1]["record_hash"],
+        },
+    )
