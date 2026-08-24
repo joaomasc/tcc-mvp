@@ -1,0 +1,30 @@
+{
+  "development": {
+    "conditional": {
+      "interval_score": 0.3923821053362613,
+      "interval_score_quiet": 0.15700455070748712,
+      "interval_score_event": 0.5889915921438257,
+      "coverage": 0.782051282051282,
+      "mean_width": 0.1638291931561152,
+      "coverage_quiet": 0.9577464788732394,
+      "coverage_event": 0.6352941176470588,
+      "width_quiet": 0.14574647157866108,
+      "width_event": 0.17893358412081212,
+      "width_ratio_event_over_quiet": 1.2277043977990203,
+      "n": 156
+    },
+    "fixed_window": {
+      "interval_score": 0.3867683732895032,
+      "interval_score_quiet": 0.1314918068926904,
+      "interval_score_event": 0.5999993875738997,
+      "coverage": 0.7307692307692307,
+      "mean_width": 0.10659045553881095,
+      "coverage_quiet": 0.9436619718309859,
+      "coverage_event": 0.5529411764705883,
+      "width_quiet": 0.10547525096714286,
+      "width_event": 0.10752197935749838,
+      "width_ratio_event_over_quiet": 1.019404821240891,
+      "n": 156
+    }
+  }
+}

@@ -1,0 +1,223 @@
+{
+  "scope": "ANP weekly national resale price — Diesel B S10 only",
+  "horizon_weeks": 1,
+  "protocol": "spec frozen on three expanding development folds; holdout read once",
+  "data_start": "2012-12-30",
+  "data_end": "2026-08-09",
+  "n_observations": 702,
+  "development_folds": [
+    {
+      "start": "2021-08-22",
+      "end": "2022-08-14"
+    },
+    {
+      "start": "2022-08-21",
+      "end": "2023-08-13"
+    },
+    {
+      "start": "2023-08-20",
+      "end": "2024-08-11"
+    }
+  ],
+  "development_summary": [
+    {
+      "fold": "validation_1",
+      "model": "pass_through",
+      "rmse": 0.1580574833,
+      "mae": 0.0758836001,
+      "median_abs_error": 0.0259298925,
+      "rmse_quiet": 0.0329319927,
+      "rmse_event": 0.2170475143,
+      "rmse_ratio_vs_naive": 0.9435468967,
+      "n": 52
+    },
+    {
+      "fold": "validation_1",
+      "model": "arima",
+      "rmse": 0.1654370658,
+      "mae": 0.0793853107,
+      "median_abs_error": 0.02567114,
+      "rmse_quiet": 0.0404957356,
+      "rmse_event": 0.2262588134,
+      "rmse_ratio_vs_naive": 0.9876003766,
+      "n": 52
+    },
+    {
+      "fold": "validation_1",
+      "model": "persistencia",
+      "rmse": 0.1675141785,
+      "mae": 0.0757307692,
+      "median_abs_error": 0.02,
+      "rmse_quiet": 0.0097180245,
+      "rmse_event": 0.2322842288,
+      "rmse_ratio_vs_naive": 1.0,
+      "n": 52
+    },
+    {
+      "fold": "validation_2",
+      "model": "pass_through",
+      "rmse": 0.0792245414,
+      "mae": 0.0488853792,
+      "median_abs_error": 0.0305909031,
+      "rmse_quiet": 0.0160172332,
+      "rmse_event": 0.0933651908,
+      "rmse_ratio_vs_naive": 0.8528710463,
+      "n": 52
+    },
+    {
+      "fold": "validation_2",
+      "model": "arima",
+      "rmse": 0.0844164838,
+      "mae": 0.0512724941,
+      "median_abs_error": 0.0251839056,
+      "rmse_quiet": 0.0125095929,
+      "rmse_event": 0.0997580957,
+      "rmse_ratio_vs_naive": 0.9087635417,
+      "n": 52
+    },
+    {
+      "fold": "validation_2",
+      "model": "persistencia",
+      "rmse": 0.0928915828,
+      "mae": 0.0605769231,
+      "median_abs_error": 0.04,
+      "rmse_quiet": 0.0146059349,
+      "rmse_event": 0.1097293969,
+      "rmse_ratio_vs_naive": 1.0,
+      "n": 52
+    },
+    {
+      "fold": "validation_3",
+      "model": "pass_through",
+      "rmse": 0.0644441174,
+      "mae": 0.0256117624,
+      "median_abs_error": 0.0128366369,
+      "rmse_quiet": 0.0127446366,
+      "rmse_event": 0.1002195455,
+      "rmse_ratio_vs_naive": 0.7870843199,
+      "n": 52
+    },
+    {
+      "fold": "validation_3",
+      "model": "arima",
+      "rmse": 0.0653156878,
+      "mae": 0.0275729556,
+      "median_abs_error": 0.0142769745,
+      "rmse_quiet": 0.0129996104,
+      "rmse_event": 0.1015593999,
+      "rmse_ratio_vs_naive": 0.7977291923,
+      "n": 52
+    },
+    {
+      "fold": "validation_3",
+      "model": "persistencia",
+      "rmse": 0.0818770185,
+      "mae": 0.0315384615,
+      "median_abs_error": 0.02,
+      "rmse_quiet": 0.0110716144,
+      "rmse_event": 0.1281368316,
+      "rmse_ratio_vs_naive": 1.0,
+      "n": 52
+    }
+  ],
+  "development_coverage": {
+    "coverage": 0.782051282051282,
+    "mean_width": 0.13504948693719654,
+    "mean_width_quiet": 0.11847792185921036,
+    "mean_width_event": 0.14889161776704382,
+    "coverage_quiet": 0.9577464788732394,
+    "coverage_event": 0.6352941176470588
+  },
+  "development_gates": {
+    "beats_arima_on_development_mean": true,
+    "beats_naive_every_development_fold": true,
+    "development_gain_vs_arima_pct": 4.2653576833583955,
+    "interval_coverage_within_band": true,
+    "cleared_for_holdout_read": true
+  },
+  "config": {
+    "huber_delta": 3.5,
+    "irls_iterations": 8,
+    "min_train": 60,
+    "coint_warmup": 52,
+    "volatility_window": 26,
+    "interval_nominal": 0.8,
+    "change_limit_sigma": 8.0
+  },
+  "seconds": 9.6,
+  "holdout_evaluated": true,
+  "holdout_window": {
+    "start": "2024-08-18",
+    "end": "2026-08-09"
+  },
+  "holdout_comparison": [
+    {
+      "model": "arima",
+      "rmse": 0.0814632653,
+      "mae": 0.0270688551,
+      "median_abs_error": 0.01,
+      "rmse_quiet": 0.0117865977,
+      "rmse_event": 0.1394464224,
+      "rmse_ratio_vs_naive": 0.8518544424,
+      "n": 104
+    },
+    {
+      "model": "pass_through",
+      "rmse": 0.0828614433,
+      "mae": 0.0289185801,
+      "median_abs_error": 0.0128270002,
+      "rmse_quiet": 0.0218186496,
+      "rmse_event": 0.1395112145,
+      "rmse_ratio_vs_naive": 0.8664750713,
+      "n": 104
+    },
+    {
+      "model": "persistencia",
+      "rmse": 0.0956304988,
+      "mae": 0.0325961538,
+      "median_abs_error": 0.01,
+      "rmse_quiet": 0.0085972695,
+      "rmse_event": 0.1644036844,
+      "rmse_ratio_vs_naive": 1.0,
+      "n": 104
+    }
+  ],
+  "holdout_tests": {
+    "dm_pvalue_pt_vs_naive": 0.20208156733532334,
+    "dm_pvalue_pt_vs_arima": 0.35243839059324333,
+    "block_bootstrap_pvalue_pt_vs_naive": 0.26318420394901276,
+    "block_bootstrap_pvalue_pt_vs_arima": 0.05598600349912522
+  },
+  "holdout_coverage": {
+    "coverage": 0.875,
+    "mean_width": 0.09484742737483885,
+    "mean_width_quiet": 0.06957783077556579,
+    "mean_width_event": 0.1446646320991201,
+    "coverage_quiet": 0.927536231884058,
+    "coverage_event": 0.7714285714285715
+  },
+  "procurement": {
+    "pass_through": {
+      "net_savings_brl": 7961.538461538466,
+      "annualized_savings_brl": 4019.4174757281576,
+      "annualized_savings_ci90_brl": [
+        -410.67961165049155,
+        11711.650485436909
+      ],
+      "triggered_prebuys": 21,
+      "trigger_precision": 0.5238095238095238,
+      "largest_event_share_of_savings": 0.6666666666666663
+    },
+    "ARIMA": {
+      "net_savings_brl": 16961.53846153846,
+      "annualized_savings_brl": 8563.106796116504,
+      "annualized_savings_ci90_brl": [
+        116.50485436893989,
+        23653.398058252424
+      ],
+      "triggered_prebuys": 8,
+      "trigger_precision": 0.75,
+      "largest_event_share_of_savings": 0.5034013605442174
+    }
+  }
+}
