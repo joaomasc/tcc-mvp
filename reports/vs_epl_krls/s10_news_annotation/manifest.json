@@ -1,0 +1,86 @@
+{
+  "allowed_labels": {
+    "direction_label": [
+      "down",
+      "neutral",
+      "up",
+      "uncertain"
+    ],
+    "horizon_label": [
+      "1w",
+      "2w",
+      "4w",
+      "long",
+      "unknown"
+    ],
+    "intensity_label": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "relevance_label": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "annotation_rows": 600,
+  "annotator_files": {
+    "1": {
+      "path": "C:\\Users\\Acer\\MachineLearning-MVP\\data\\annotations\\s10_news_pressure_v1.annotator_1.csv",
+      "sha256": "a534995436b3119a0247e54ce767a13845fbaacbb3b188c1023b6c871d4995b9"
+    },
+    "2": {
+      "path": "C:\\Users\\Acer\\MachineLearning-MVP\\data\\annotations\\s10_news_pressure_v1.annotator_2.csv",
+      "sha256": "cb662f03e533020b890e2e0950ef032e7f0a27af718d27fa671774969be0d31b"
+    }
+  },
+  "annotators_per_item": 2,
+  "batch_id": "annotation:aa41d45b2aa0dfaf92fb9ff43ab464f7525c7e1e4b4f485558969c677d0843fb",
+  "columns": [
+    "batch_id",
+    "news_dataset_sha256",
+    "item_id",
+    "annotation_slot",
+    "record_id",
+    "source_id",
+    "published_date",
+    "first_available_at",
+    "canonical_url",
+    "license_name",
+    "title",
+    "summary",
+    "annotator_id",
+    "annotated_at_utc",
+    "relevance_label",
+    "direction_label",
+    "intensity_label",
+    "horizon_label",
+    "evidence_text",
+    "rationale"
+  ],
+  "item_count": 300,
+  "news_dataset_sha256": "0ad4747dfe71d570982eb0d2e242dc6ee533d4f009403977485b144baa1aff18",
+  "pressure_manifest_sha256": "87dfe627323197a868b3c60b601f778f936fb134365a9f4bb5f19fee6b817339",
+  "queue_path": "C:\\Users\\Acer\\MachineLearning-MVP\\data\\annotations\\s10_news_pressure_v1.csv",
+  "queue_sha256": "b0283baae2c8b960302658ea6840bdef10c6341a00ba6d469ee3b17a86af3a94",
+  "random_state": 20260823,
+  "relevant_fraction_requested": 0.6666666666666666,
+  "schema_version": "s10-news-annotation.v1",
+  "selection_pool_counts": {
+    "control": 100,
+    "lexicon_relevant": 200
+  },
+  "source_counts": {
+    "anp_news": 39,
+    "fazenda_news": 1,
+    "ibge_news": 45,
+    "mme_news": 215
+  },
+  "status": "awaiting_two_independent_human_annotations",
+  "training_allowed": false,
+  "year_max": 2026,
+  "year_min": 2014
+}

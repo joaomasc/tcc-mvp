@@ -52,6 +52,7 @@ def test_krls_matches_kernel_ridge_small():
         for j in range(n):
             K[i, j] = np.exp(-np.sum((D[i] - D[j]) ** 2) / (2.0 * 0.5))
     theta_cf = np.linalg.solve(K + cfg.lam * np.eye(n), y[:n] if n <= len(y) else y)
+    assert np.all(np.isfinite(theta_cf))
     # only compare if dictionary grew reasonably
     assert rule.n_dict >= 1
     pred_m = m.predict_one(X[-1])
@@ -79,3 +80,53 @@ def test_mackey_glass_learns():
     naive = float(np.sqrt(np.mean((y[n_train - 1 : -1] - y[n_train:]) ** 2)))
     assert np.isfinite(rmse)
     assert rmse < 5.0 * naive + 0.5
+
+
+def test_threshold_conventions_and_activation_normalization():
+    table = VSePLKRLS(VSePLKRLSConfig(beta0=0.2, threshold_convention="tabela"))
+    text = VSePLKRLS(VSePLKRLSConfig(beta0=0.2, threshold_convention="texto"))
+    assert table._tau() == 0.8
+    assert table._gamma() == 0.2
+    assert text._tau() == 0.2
+    assert text._gamma() == 0.8
+    assert np.allclose(table._normalized_activation(np.array([0.0, 0.0])), [0.5, 0.5])
+
+
+def test_fit_online_history_shapes_and_reset():
+    X = np.array([[0.0], [0.2], [0.4], [0.6]])
+    y = np.array([1.0, 1.2, 1.4, 1.6])
+    model = VSePLKRLS(VSePLKRLSConfig(use_variable_step=False, d_max=3))
+    preds = model.fit_online(X, y)
+    assert preds.shape == y.shape
+    assert model.n_seen == len(y)
+    assert len(model.history_error) == len(y)
+    assert model.n_rules >= 1
+    assert all(rule.n_dict <= 3 for rule in model.rules)
+    assert np.isfinite(model.predict_one(np.array([0.5])))
+    model.reset()
+    assert model.n_rules == 0
+    assert model.n_seen == 0
+    assert model.beta == model.cfg.beta0
+    assert model.history_error == []
+
+
+def test_rule_dimensions_remain_consistent_during_dictionary_growth():
+    model = VSePLKRLS(
+        VSePLKRLSConfig(
+            use_variable_step=False,
+            d_max=6,
+            novelty_coef=0.0,
+            max_rules=1,
+        )
+    )
+    for i in range(10):
+        model.update(np.array([i / 10.0, (i / 10.0) ** 2]), float(i))
+    rule = model.rules[0]
+    n = rule.n_dict
+    assert rule.dictionary.shape == (n, 2)
+    assert rule.theta.shape == (n,)
+    assert rule.nu.shape == (n,)
+    assert rule.Q.shape == (n, n)
+    assert rule.P_krls.shape == (n, n)
+    assert rule.P_lm.shape == (n, n)
+    assert np.isfinite(rule.theta).all()

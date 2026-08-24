@@ -1,0 +1,5 @@
+model,rule_id,dictionary_size,activations,arousal
+VS-ePL-KRLS,4,30,480,0.22621365368537383
+ePL-KRLS beta fixo,1,30,209,0.4643338914037021
+ePL-KRLS beta fixo,3,14,51,0.3392218075913682
+ePL-KRLS beta fixo,4,30,220,0.0518198580553602

@@ -1,0 +1,105 @@
+{
+  "updated": true,
+  "evaluation": {
+    "forecast_id": "952ca16913bf7540d81bbb1748fd42383f626a150e5513812aba0a4b7de4b06e",
+    "target_date": "2026-08-16",
+    "actual": 6.89,
+    "hybrid": 6.899084669486068,
+    "arima": 6.89807791495677,
+    "persistence": 6.91,
+    "hybrid_error": -0.009084669486068009,
+    "arima_error": -0.008077914956770016,
+    "persistence_error": -0.020000000000000462,
+    "candidate_fingerprint": "7410bb7e767e1e565bd87730fea945be432a46595948e39952211c5c08cfd6a7"
+  },
+  "forecast": {
+    "forecast_id": "a16f074e99fd510bc00160afecd3460f1e553e196f5861f653b2b81d56280af1",
+    "target_date": "2026-08-23",
+    "base_point": 6.8820506644385055,
+    "raw_correction": 0.0007680144212210707,
+    "applied_correction": 0.00038400721061053537,
+    "point": 6.882434671649116,
+    "persistence": 6.89,
+    "guardrail_used": false,
+    "last_observed_date": "2026-08-16",
+    "last_observed_price": 6.89,
+    "candidate_fingerprint": "7410bb7e767e1e565bd87730fea945be432a46595948e39952211c5c08cfd6a7",
+    "data_fingerprint": "4b4a9ac1c1a51b11cc0e0803c487a101df95e6f88819dd37b29a28c82013fa34"
+  },
+  "health": {
+    "status": "warning",
+    "n_observations": 703,
+    "n_outcomes": 1,
+    "pending_target_date": "2026-08-23",
+    "n_rules": 20,
+    "beta": 0.001,
+    "max_dictionary_size": 20,
+    "dictionary_replacements": 232,
+    "dictionary_replacement_rate": 0.3563748079877112,
+    "feature_clip_fraction": 0.0,
+    "warnings": [
+      "rule_capacity_pressure",
+      "dictionary_capacity_pressure"
+    ]
+  },
+  "promotion_report": {
+    "n_outcomes": 1,
+    "minimum_outcomes": 26,
+    "preferred_outcomes": 52,
+    "automatic_promotion_allowed": false,
+    "candidate_fingerprint": "7410bb7e767e1e565bd87730fea945be432a46595948e39952211c5c08cfd6a7",
+    "status": "collecting",
+    "weeks_remaining": 25,
+    "hybrid_metrics": {
+      "mse": 8.253121967109518e-05,
+      "rmse": 0.009084669486068009,
+      "mae": 0.009084669486068009,
+      "smape": 0.1317660991112995
+    },
+    "arima_metrics": {
+      "mse": 6.525271004880872e-05,
+      "rmse": 0.008077914956770016,
+      "mae": 0.008077914956770016,
+      "smape": 0.11717245879510746
+    },
+    "persistence_metrics": {
+      "mse": 0.00040000000000001845,
+      "rmse": 0.020000000000000462,
+      "mae": 0.020000000000000462,
+      "smape": 0.2898550724637748
+    },
+    "rmse_ratio_vs_arima": 1.1246304937209375,
+    "rmse_ratio_vs_persistence": 0.45423347430338995,
+    "worst_13_week_rmse_ratio_vs_arima": null,
+    "dm_vs_arima": {
+      "statistic": 0.0,
+      "pvalue": 1.0,
+      "mean_loss_difference": 1.727850962228646e-05
+    },
+    "gates": {
+      "minimum_evidence": false,
+      "rmse_gain_vs_arima_at_least_2pct": false,
+      "rmse_gain_vs_persistence_at_least_2pct": false,
+      "worst_13_week_ratio_below_1_05": false,
+      "dm_pvalue_below_0_05": false,
+      "preferred_evidence": false
+    }
+  },
+  "artifact": "C:\\Users\\Acer\\MachineLearning-MVP\\artifacts\\releases\\s10_shadow_hybrid_2026-08-16.joblib",
+  "artifact_sha256": "d9da2b3d9e51dbc9e9f2b0eed0c9ad69fafb226efa22c9c8981ca83a6e52345a",
+  "source_observation": {
+    "week_start": "2026-08-16",
+    "week_end": "2026-08-22",
+    "price_brl_per_liter": 6.89,
+    "stations_surveyed": 3173,
+    "geography": "BRASIL",
+    "product": "OLEO DIESEL S10",
+    "unit": "R$/L",
+    "source_path": "C:\\Users\\Acer\\MachineLearning-MVP\\data\\raw\\anp_weekly\\resumo_semanal_lpc_2026-08-16_2026-08-22.xlsx",
+    "source_sha256": "0eff93f1bb1693f40d161c45e022adb7c0e4d97e06b91044a2bbdee41392035a",
+    "source_url": "https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/arquivos-lpc/2026/resumo_semanal_lpc_2026-08-16_2026-08-22.xlsx"
+  },
+  "candidate_fingerprint": "7410bb7e767e1e565bd87730fea945be432a46595948e39952211c5c08cfd6a7",
+  "ledger_records": 4,
+  "ledger_head_hash": "a1e5f4ee308f35a98aa32a6de345e41ad2fb498d7f483a756d36b4c831ea8dad"
+}

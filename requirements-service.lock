@@ -1,0 +1,11 @@
+# Auditable runtime set for the S10 API. Transitive dependencies are resolved
+# by pip and scanned in CI; no research/deep-learning packages are included.
+numpy==1.26.4
+pandas==2.2.2
+joblib==1.4.2
+scikit-learn==1.5.2
+statsmodels==0.14.4
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+httpx==0.28.1
+

@@ -151,7 +151,6 @@ class VSePLKRLS:
         rule.center = rule.center + gain * (x - rule.center)
 
     def _pairwise_compat(self, i: int, j: int) -> float:
-        m = max(self.rules[i].center.shape[0], 1)
         return float(1.0 - np.mean(np.abs(self.rules[i].center - self.rules[j].center)))
 
     def _merge_redundant(self) -> None:

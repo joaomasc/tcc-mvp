@@ -1,0 +1,115 @@
+{
+  "scope": "ANP weekly national resale price — Diesel B S10 only",
+  "horizon_weeks": 1,
+  "data_start": "2012-12-30",
+  "data_end": "2026-08-09",
+  "n_observations": 702,
+  "validation_folds": [
+    {
+      "fold_id": "validation_1",
+      "validation_start": 585,
+      "validation_end": 611
+    },
+    {
+      "fold_id": "validation_2",
+      "validation_start": 611,
+      "validation_end": 637
+    }
+  ],
+  "holdout": {
+    "fold_id": "holdout",
+    "validation_start": 637,
+    "validation_end": 689
+  },
+  "champion_selected_without_holdout": {
+    "candidate_id": "random_005_dynamics_delta",
+    "feature_set": "dynamics",
+    "target_mode": "delta",
+    "alpha": 0.01,
+    "beta_initial": 0.01,
+    "alpha_vs1": 0.97,
+    "alpha_vs2": 0.84,
+    "error_threshold": 0.5,
+    "kernel_sigma": 0.15,
+    "regularization": 0.01,
+    "novelty_factor": 0.05,
+    "max_dictionary_size": 30,
+    "center_update": "compatibility",
+    "threshold_policy": "dynamic",
+    "enable_rule_merging": true,
+    "adapt_kernel_width": false
+  },
+  "selection_seconds": 32.22287800000049,
+  "holdout_result": {
+    "candidate_id": "random_005_dynamics_delta",
+    "fold_id": "holdout",
+    "mse": 0.01635954943576606,
+    "rmse": 0.12790445432339742,
+    "mae": 0.045836053494414664,
+    "smape": 0.6697972375023487,
+    "naive_rmse": 0.1286393288348354,
+    "rmse_ratio": 0.9942873262936446,
+    "elapsed_seconds": 3.594698500000959,
+    "prediction_latency_ms_p95": 1.7845099999999996,
+    "n_rules": 12,
+    "max_rules": 12,
+    "max_dictionary_size": 30
+  },
+  "gates": {
+    "validation_beats_naive_all_folds": true,
+    "holdout_rmse_gain_at_least_2pct": false,
+    "holdout_dm_pvalue_below_005": false,
+    "latency_p95_below_20ms": true,
+    "finite_predictions": true,
+    "bounded_rules": true,
+    "bounded_dictionary": true,
+    "promote_vs_epl_krls": false
+  },
+  "selected_production_model": "ARIMA",
+  "comparison": [
+    {
+      "model": "ARIMA",
+      "mse": 0.011652915412805205,
+      "rmse": 0.10794867026881436,
+      "mae": 0.035573506763436215,
+      "smape": 0.5257374815303409,
+      "rmse_ratio_vs_naive": 0.8391575985864594,
+      "dm_vs_naive": -1.4694124976830167,
+      "dm_pvalue": 0.14172093955278364,
+      "n": 52
+    },
+    {
+      "model": "Ridge",
+      "mse": 0.012316369027340783,
+      "rmse": 0.110979137802295,
+      "mae": 0.039608189839724625,
+      "smape": 0.5835981586791359,
+      "rmse_ratio_vs_naive": 0.8627154604077969,
+      "dm_vs_naive": -1.4426590938987944,
+      "dm_pvalue": 0.14911652778971685,
+      "n": 52
+    },
+    {
+      "model": "VS-ePL-KRLS",
+      "mse": 0.01635954943576606,
+      "rmse": 0.12790445432339742,
+      "mae": 0.045836053494414664,
+      "smape": 0.6697972375023487,
+      "rmse_ratio_vs_naive": 0.9942873262936446,
+      "dm_vs_naive": -1.265634476778979,
+      "dm_pvalue": 0.20564397677578095,
+      "n": 52
+    },
+    {
+      "model": "persistencia",
+      "mse": 0.016548076923076912,
+      "rmse": 0.1286393288348354,
+      "mae": 0.04557692307692311,
+      "smape": 0.6641696150461073,
+      "rmse_ratio_vs_naive": 1.0,
+      "dm_vs_naive": 0.0,
+      "dm_pvalue": 1.0,
+      "n": 52
+    }
+  ]
+}

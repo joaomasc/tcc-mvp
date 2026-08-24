@@ -1,0 +1,18 @@
+services:
+  s10-api:
+    build: .
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    ports:
+      - "8000:8000"
+    environment:
+      S10_ENVIRONMENT: production
+      S10_API_KEY: ${S10_API_KEY:?set S10_API_KEY}
+      S10_ALLOWED_HOSTS: ${S10_ALLOWED_HOSTS:-localhost,127.0.0.1}
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+

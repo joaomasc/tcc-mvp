@@ -1,0 +1,68 @@
+{
+  "evaluated_at": "2026-08-24",
+  "verdict": "investor_demo_and_controlled_pilot_ready",
+  "interface": "api_only",
+  "enterprise_autonomous_ready": false,
+  "quality_gates": {
+    "tests": {
+      "passed": 215,
+      "skipped_optional": 2,
+      "failed": 0,
+      "status": "passed"
+    },
+    "coverage": {
+      "statements": 4341,
+      "percent": 90.05,
+      "minimum_percent": 90.0,
+      "status": "passed"
+    },
+    "static_quality": {
+      "ruff": "passed",
+      "mypy_product_layer": "passed",
+      "compileall": "passed",
+      "pip_check": "passed"
+    },
+    "dependency_security": {
+      "production_lock_known_vulnerabilities": 0,
+      "local_environment_known_vulnerabilities": 0,
+      "sbom_format": "CycloneDX 1.4",
+      "status": "passed"
+    },
+    "audit_ledgers": {
+      "production_records": 3,
+      "production_head": "0a454392ee967d01d26de47c6d474e1ba06a4bdcb351506c617701744f9b2668",
+      "shadow_records": 4,
+      "shadow_head": "a1e5f4ee308f35a98aa32a6de345e41ad2fb498d7f483a756d36b4c831ea8dad",
+      "status": "passed"
+    },
+    "load_smoke": {
+      "scope": "in_process_asgi_local_machine",
+      "requests": 500,
+      "concurrency": 16,
+      "errors": 0,
+      "throughput_requests_per_second": 267.17021483677667,
+      "p95_latency_ms": 91.21460999999968,
+      "p99_latency_ms": 142.092637,
+      "status": "passed"
+    },
+    "container_runtime": {
+      "dockerfile_present": true,
+      "compose_present": true,
+      "image_built_and_run": false,
+      "reason": "Docker CLI is not installed on the verification machine",
+      "status": "pending_external_environment"
+    }
+  },
+  "model_evidence": {
+    "holdout_weeks": 104,
+    "primary": "ARIMA",
+    "primary_rmse": 0.08145290469600379,
+    "naive_rmse": 0.09563049883636654,
+    "rmse_reduction_vs_naive_fraction": 0.14825389716540172,
+    "dm_pvalue_vs_naive": 0.13380134086988948,
+    "challenger": "VS-ePL-KRLS",
+    "challenger_status": "shadow_not_promoted",
+    "prospective_observations": 1,
+    "minimum_prospective_observations": 26
+  }
+}

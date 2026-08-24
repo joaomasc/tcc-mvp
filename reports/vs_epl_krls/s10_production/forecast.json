@@ -1,0 +1,127 @@
+{
+  "forecast": {
+    "target_date": "2026-08-16",
+    "point": 6.89807791495677,
+    "p10": 6.834548813320734,
+    "p90": 6.955517764578026,
+    "primary_model": "ARIMA",
+    "fallback_used": false,
+    "fallback_reason": null,
+    "components": {
+      "ARIMA": 6.89807791495677,
+      "Ridge": 6.911801303587604,
+      "persistencia": 6.91,
+      "VS-ePL-KRLS": 6.903704651440282,
+      "ensemble": 6.899765935901823
+    },
+    "last_observed_date": "2026-08-09",
+    "last_observed_price": 6.91,
+    "data_fingerprint": "b1a8d00e7fbde5bda53adae203c54388fec4c1a9c9f0f5506fb683ed5bf67e3d"
+  },
+  "health": {
+    "status": "warning",
+    "n_observations": 702,
+    "last_date": "2026-08-09",
+    "n_rules": 13,
+    "beta": 0.0001,
+    "max_dictionary_size": 20,
+    "feature_clip_fraction": 0.0,
+    "rule_capacity_fraction": 0.65,
+    "dictionary_capacity_fraction": 1.0,
+    "dictionary_replacements": 144,
+    "dictionary_replacement_rate": 0.20899854862119013,
+    "interval_monitor_samples": 0,
+    "empirical_interval_coverage": null,
+    "recent_mae": null,
+    "last_cadence_days": 7,
+    "warnings": [
+      "dictionary_capacity_pressure",
+      "dictionary_replacement_churn",
+      "beta_floor_pressure"
+    ]
+  },
+  "metadata": {
+    "artifact_version": "1.1.0",
+    "created_at_utc": "2026-08-16T23:20:59.150509+00:00",
+    "scope": "Diesel B S10, weekly national ANP resale price, horizon=1",
+    "primary_model": "ARIMA",
+    "challenger": "VS-ePL-KRLS",
+    "candidate": {
+      "candidate_id": "random_015_lags_delta",
+      "feature_set": "lags",
+      "target_mode": "delta",
+      "alpha": 0.26,
+      "beta_initial": 0.18,
+      "alpha_vs1": 0.94,
+      "alpha_vs2": 0.74,
+      "error_threshold": 0.5,
+      "kernel_sigma": 0.15,
+      "regularization": 0.001,
+      "novelty_factor": 0.1,
+      "max_dictionary_size": 20,
+      "max_rules": 20,
+      "beta_min": 0.0001,
+      "beta_recovery_rate": 0.0,
+      "forgetting_factor": 1.0,
+      "dictionary_usage_decay": 1.0,
+      "residual_correction_weight": 1.0,
+      "residual_correction_limit": null,
+      "center_update": "paper",
+      "threshold_policy": "dynamic",
+      "enable_rule_merging": false,
+      "adapt_kernel_width": false
+    },
+    "ensemble_weights": [
+      0.7,
+      0.0,
+      0.0,
+      0.3
+    ],
+    "training_start": "2012-12-30",
+    "training_end": "2026-08-09",
+    "n_observations": 702,
+    "data_fingerprint": "b1a8d00e7fbde5bda53adae203c54388fec4c1a9c9f0f5506fb683ed5bf67e3d",
+    "feature_names": [
+      "price_lag_0",
+      "price_lag_1",
+      "price_lag_2",
+      "price_lag_4",
+      "price_lag_8",
+      "price_lag_12"
+    ],
+    "online_updates": 0,
+    "calibration_samples": 156,
+    "fallback_calibration_samples": 156,
+    "calibration_window": 156,
+    "last_forecast_residual": null,
+    "interval_monitor_samples": 0,
+    "empirical_interval_coverage": null,
+    "recent_mae": null,
+    "runtime_versions": {
+      "python": "3.12.13",
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "scikit_learn": "1.5.2",
+      "statsmodels": "0.14.4",
+      "joblib": "1.4.2"
+    }
+  },
+  "artifact": "C:\\Users\\Acer\\MachineLearning-MVP\\artifacts\\s10_production.joblib",
+  "artifact_sha256": "6e5150d9bec7d0a1a6f40e305a8f758e140e072743814dae96014357a76a3a35",
+  "runtime_benchmark": {
+    "load_ms": 101.43,
+    "predict_p50_ms": 11.95795,
+    "predict_p95_ms": 15.2846,
+    "predict_p99_ms": 16.212869000000207,
+    "n_predictions": 100,
+    "deterministic_points": true,
+    "artifact_bytes": 1564232
+  },
+  "selection_manifest": "C:\\Users\\Acer\\MachineLearning-MVP\\reports\\vs_epl_krls\\s10_selection\\selection_manifest_h1.json",
+  "production_gate": {
+    "selection_used_holdout_for_tuning": false,
+    "roundtrip_exact": true,
+    "primary_approved": "ARIMA",
+    "vs_epl_krls_promoted": false
+  }
+}

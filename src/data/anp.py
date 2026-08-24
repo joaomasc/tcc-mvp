@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+import unicodedata
 
 import pandas as pd
 
@@ -24,10 +24,6 @@ S10_ALIASES = {
     "DIESEL S10",
     "DIESEL S-10",
 }
-
-
-import unicodedata
-
 
 def _norm(s) -> str:
     t = str(s).strip().upper()

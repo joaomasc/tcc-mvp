@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -11,6 +12,40 @@ sys.path.insert(0, str(ROOT / "src"))
 
 RES = ROOT / "results"
 REP = ROOT / "reports"
+
+
+def validate_forecast_payload(forecast: dict, expected_model: str) -> None:
+    required = {
+        "modelo",
+        "ultima_semana_observada",
+        "preco_observado_ultima_semana",
+        "previsao_pontual",
+        "p10",
+        "p90",
+        "probabilidades",
+    }
+    missing = sorted(required - set(forecast))
+    if missing:
+        raise RuntimeError(f"Artefato de previsao incompleto: {missing}")
+    if forecast["modelo"] != expected_model:
+        raise RuntimeError(
+            "Artefato de previsao inconsistente: "
+            f"ranking selecionou {expected_model}, mas o payload contem {forecast['modelo']!r}"
+        )
+    point, p10, p90 = (float(forecast[key]) for key in ("previsao_pontual", "p10", "p90"))
+    if not all(math.isfinite(value) for value in (point, p10, p90)):
+        raise RuntimeError("Artefato de previsao contem valores nao finitos")
+    if not p10 <= point <= p90:
+        raise RuntimeError("Previsao pontual deve estar dentro do intervalo P10-P90")
+    probs = forecast["probabilidades"]
+    expected_probs = {"p_alta", "p_estavel", "p_queda"}
+    if set(probs) != expected_probs:
+        raise RuntimeError("Probabilidades devem conter alta, estavel e queda")
+    values = [float(probs[key]) for key in sorted(expected_probs)]
+    if not all(math.isfinite(value) and 0.0 <= value <= 1.0 for value in values):
+        raise RuntimeError("Probabilidades fora do intervalo [0, 1]")
+    if not math.isclose(sum(values), 1.0, abs_tol=1e-9):
+        raise RuntimeError("Probabilidades nao somam 1")
 
 
 def md_table(df: pd.DataFrame) -> str:
@@ -29,11 +64,13 @@ def md_table(df: pd.DataFrame) -> str:
 
 
 def main():
+    REP.mkdir(parents=True, exist_ok=True)
     table = pd.read_csv(RES / "semanal_benchmarks.csv")
     h1 = table[table.horizon == 1].sort_values("rmse")
     winner = h1.iloc[0]
     forecast = json.loads((RES / "previsao_proxima_semana.json").read_text(encoding="utf-8"))
     rec = winner["model"]
+    validate_forecast_payload(forecast, rec)
     note = (
         "Modelo recomendado para producao com base no RMSE walk-forward de 1 semana. "
         "Se VS-ePL-KRLS nao for o vencedor, ele permanece como candidato evolutivo "

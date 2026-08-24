@@ -1,0 +1,23 @@
+{
+  "requests": 500,
+  "concurrency": 16,
+  "successful": 500,
+  "errors": 0,
+  "contract_failures": 0,
+  "elapsed_seconds": 1.871466100012185,
+  "throughput_requests_per_second": 267.17021483677667,
+  "latency_ms": {
+    "p50": 48.25145,
+    "p95": 91.21460999999968,
+    "p99": 142.092637,
+    "max": 161.4747
+  },
+  "gates": {
+    "zero_http_errors": true,
+    "zero_contract_failures": true,
+    "p95_below_200ms": true,
+    "p99_below_300ms": true,
+    "throughput_above_100rps": true
+  },
+  "passed": true
+}

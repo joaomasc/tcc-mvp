@@ -1,0 +1,251 @@
+{
+  "scope": "ANP weekly national resale price — Diesel B S10 only",
+  "horizon_weeks": 1,
+  "data_start": "2012-12-30",
+  "data_end": "2026-08-09",
+  "n_observations": 702,
+  "validation_folds": [
+    {
+      "fold_id": "validation_1",
+      "validation_start": 429,
+      "validation_end": 481
+    },
+    {
+      "fold_id": "validation_2",
+      "validation_start": 481,
+      "validation_end": 533
+    },
+    {
+      "fold_id": "validation_3",
+      "validation_start": 533,
+      "validation_end": 585
+    }
+  ],
+  "holdout": {
+    "fold_id": "holdout",
+    "validation_start": 585,
+    "validation_end": 689
+  },
+  "champion_selected_without_holdout": {
+    "candidate_id": "random_015_lags_delta",
+    "feature_set": "lags",
+    "target_mode": "delta",
+    "alpha": 0.26,
+    "beta_initial": 0.18,
+    "alpha_vs1": 0.94,
+    "alpha_vs2": 0.74,
+    "error_threshold": 0.5,
+    "kernel_sigma": 0.15,
+    "regularization": 0.001,
+    "novelty_factor": 0.1,
+    "max_dictionary_size": 20,
+    "max_rules": 20,
+    "center_update": "paper",
+    "threshold_policy": "dynamic",
+    "enable_rule_merging": false,
+    "adapt_kernel_width": false
+  },
+  "selection_seconds_current_run": 3.925603099998625,
+  "candidate_search_seconds": 360.17027039999994,
+  "reused_validation_ranking": true,
+  "n_candidates_ranked": 63,
+  "holdout_result": {
+    "candidate_id": "random_015_lags_delta",
+    "fold_id": "holdout",
+    "mse": 0.008801830493668327,
+    "rmse": 0.09381807125318835,
+    "mae": 0.03359587543038189,
+    "smape": 0.5086515005408866,
+    "naive_rmse": 0.09563049883636654,
+    "rmse_ratio": 0.9810475987762081,
+    "elapsed_seconds": 1.83392989999993,
+    "prediction_latency_ms_p95": 1.5226449999999998,
+    "n_rules": 13,
+    "max_rules": 13,
+    "max_dictionary_size": 20
+  },
+  "vs_epl_krls_gates": {
+    "validation_beats_naive_all_folds": true,
+    "holdout_rmse_gain_at_least_2pct": false,
+    "holdout_dm_pvalue_below_005": true,
+    "latency_p95_below_20ms": true,
+    "finite_predictions": true,
+    "bounded_rules": true,
+    "bounded_dictionary": true,
+    "promote_vs_epl_krls": false
+  },
+  "ensemble": {
+    "component_order": [
+      "ARIMA",
+      "Ridge",
+      "persistencia",
+      "VS-ePL-KRLS"
+    ],
+    "weights": [
+      0.7,
+      0.0,
+      0.0,
+      0.3
+    ]
+  },
+  "validation_comparison": [
+    {
+      "model": "ensemble",
+      "mse": 0.01281896496316922,
+      "rmse": 0.11322086805518328,
+      "mae": 0.05332350180443492,
+      "smape": 0.8695647200871631,
+      "bias": -0.0037363877532168755,
+      "max_absolute_error": 0.7773011902851144,
+      "directional_accuracy": 0.6714285714285714,
+      "rmse_ratio_vs_naive": 0.9413991568910048,
+      "dm_vs_naive": -1.442441109901971,
+      "dm_pvalue": 0.14917797355388496,
+      "n": 156
+    },
+    {
+      "model": "ARIMA",
+      "mse": 0.012921844774502046,
+      "rmse": 0.11367429249615783,
+      "mae": 0.05273525333123915,
+      "smape": 0.8572169921013382,
+      "bias": -0.004640351377745726,
+      "max_absolute_error": 0.7532186617951249,
+      "directional_accuracy": 0.6928571428571428,
+      "rmse_ratio_vs_naive": 0.9451692515191363,
+      "dm_vs_naive": -1.0481712400625782,
+      "dm_pvalue": 0.2945597185475961,
+      "n": 156
+    },
+    {
+      "model": "VS-ePL-KRLS",
+      "mse": 0.013490431840233725,
+      "rmse": 0.1161483182841393,
+      "mae": 0.05749043271801259,
+      "smape": 0.9444304178617897,
+      "bias": -0.001627139295981689,
+      "max_absolute_error": 0.8334937567617544,
+      "directional_accuracy": 0.4357142857142857,
+      "rmse_ratio_vs_naive": 0.9657400688157957,
+      "dm_vs_naive": -1.1425355287594787,
+      "dm_pvalue": 0.2532314866781189,
+      "n": 156
+    },
+    {
+      "model": "persistencia",
+      "mse": 0.0144645641025641,
+      "rmse": 0.1202687162256424,
+      "mae": 0.05594871794871793,
+      "smape": 0.9211420485602443,
+      "bias": -0.008628205128205124,
+      "max_absolute_error": 0.8390000000000004,
+      "directional_accuracy": 0.0,
+      "rmse_ratio_vs_naive": 1.0,
+      "dm_vs_naive": 0.0,
+      "dm_pvalue": 1.0,
+      "n": 156
+    },
+    {
+      "model": "Ridge",
+      "mse": 0.017559552429048192,
+      "rmse": 0.13251246141042053,
+      "mae": 0.07199498290043904,
+      "smape": 1.1611796950368851,
+      "bias": 0.009191225784775145,
+      "max_absolute_error": 0.8564710513640401,
+      "directional_accuracy": 0.45714285714285713,
+      "rmse_ratio_vs_naive": 1.1018032416826251,
+      "dm_vs_naive": 2.9474480511304026,
+      "dm_pvalue": 0.003204085826765013,
+      "n": 156
+    }
+  ],
+  "production_gates": {
+    "selected_on_validation_only": true,
+    "finite_holdout_predictions": true,
+    "holdout_not_worse_than_naive_by_2pct": true,
+    "at_least_100_holdout_predictions": true,
+    "holdout_within_2pct_of_arima": false,
+    "production_candidate_passed": false
+  },
+  "selected_production_model": "ARIMA",
+  "interval_diagnostics": {
+    "method": "validation_residual_quantiles",
+    "nominal_coverage": 0.8,
+    "holdout_coverage": 0.9230769230769231,
+    "mean_width": 0.12096895125729201,
+    "calibration_samples": 156
+  },
+  "comparison": [
+    {
+      "model": "ARIMA",
+      "mse": 0.006634575683416277,
+      "rmse": 0.08145290469600379,
+      "mae": 0.027064113823969296,
+      "smape": 0.4120668081813565,
+      "bias": -0.005788995624438635,
+      "max_absolute_error": 0.7198921746148317,
+      "directional_accuracy": 0.5915492957746479,
+      "rmse_ratio_vs_naive": 0.8517461028345983,
+      "dm_vs_naive": -1.4992787186972178,
+      "dm_pvalue": 0.13380134086988948,
+      "n": 104
+    },
+    {
+      "model": "ensemble",
+      "mse": 0.007091749848551302,
+      "rmse": 0.08421252785988141,
+      "mae": 0.028524577127204312,
+      "smape": 0.4328552266577431,
+      "bias": -0.004886309958952588,
+      "max_absolute_error": 0.7232661155254743,
+      "directional_accuracy": 0.7887323943661971,
+      "rmse_ratio_vs_naive": 0.8806032477565298,
+      "dm_vs_naive": -1.5525548099629929,
+      "dm_pvalue": 0.12052952881000012,
+      "n": 104
+    },
+    {
+      "model": "VS-ePL-KRLS",
+      "mse": 0.008801830493668327,
+      "rmse": 0.09381807125318835,
+      "mae": 0.03359587543038189,
+      "smape": 0.5086515005408866,
+      "bias": -0.002780043406150422,
+      "max_absolute_error": 0.7311386443169718,
+      "directional_accuracy": 0.6338028169014085,
+      "rmse_ratio_vs_naive": 0.9810475987762081,
+      "dm_vs_naive": -2.058580561563572,
+      "dm_pvalue": 0.03953443646636301,
+      "n": 104
+    },
+    {
+      "model": "persistencia",
+      "mse": 0.009145192307692302,
+      "rmse": 0.09563049883636654,
+      "mae": 0.03259615384615387,
+      "smape": 0.48983592400457443,
+      "bias": -0.008557692307692313,
+      "max_absolute_error": 0.7399999999999993,
+      "directional_accuracy": 0.0,
+      "rmse_ratio_vs_naive": 1.0,
+      "dm_vs_naive": 0.0,
+      "dm_pvalue": 1.0,
+      "n": 104
+    },
+    {
+      "model": "Ridge",
+      "mse": 0.011435641036500632,
+      "rmse": 0.10693755671652795,
+      "mae": 0.039550465655445496,
+      "smape": 0.5896290570005112,
+      "bias": -0.0068541986406473,
+      "max_absolute_error": 0.750686365518491,
+      "directional_accuracy": 0.38028169014084506,
+      "rmse_ratio_vs_naive": 1.1182369434202046,
+      "dm_vs_naive": 1.801834755677873,
+      "dm_pvalue": 0.07157140774925375,
+      "n": 104
+    }
+  ]
+}

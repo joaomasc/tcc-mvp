@@ -1,0 +1,98 @@
+{
+  "agreement": {
+    "complete": true,
+    "direction_cohen_kappa": 0.5070510420566579,
+    "horizon_cohen_kappa": 0.7392707859123453,
+    "intensity_cohen_kappa": 0.5060030015007504,
+    "items": 300,
+    "relevance_cohen_kappa": 0.577581193180079,
+    "rows": 600,
+    "rows_per_item": 2
+  },
+  "agreement_gate_kappa_060": false,
+  "batch_id": "annotation:aa41d45b2aa0dfaf92fb9ff43ab464f7525c7e1e4b4f485558969c677d0843fb",
+  "disagreement_items": 92,
+  "disagreement_rate": 0.30666666666666664,
+  "human_annotations": false,
+  "item_count": 300,
+  "label_distributions": {
+    "procurement_risk": {
+      "direction_label": {
+        "neutral": 198,
+        "uncertain": 102
+      },
+      "horizon_label": {
+        "1w": 9,
+        "2w": 51,
+        "4w": 24,
+        "long": 1,
+        "unknown": 215
+      },
+      "intensity_label": {
+        "0": 198,
+        "1": 102
+      },
+      "relevance_label": {
+        "0": 177,
+        "1": 48,
+        "2": 31,
+        "3": 44
+      }
+    },
+    "supply_cost": {
+      "direction_label": {
+        "neutral": 119,
+        "uncertain": 180,
+        "up": 1
+      },
+      "horizon_label": {
+        "1w": 17,
+        "2w": 65,
+        "4w": 42,
+        "long": 3,
+        "unknown": 173
+      },
+      "intensity_label": {
+        "0": 119,
+        "1": 181
+      },
+      "relevance_label": {
+        "0": 85,
+        "1": 140,
+        "2": 31,
+        "3": 44
+      }
+    }
+  },
+  "model_promotion_allowed": false,
+  "news_dataset_sha256": "0ad4747dfe71d570982eb0d2e242dc6ee533d4f009403977485b144baa1aff18",
+  "next_required_step": "human review of disagreements and real double annotation",
+  "outputs": {
+    "disagreements": {
+      "path": "C:\\Users\\Acer\\MachineLearning-MVP\\data\\annotations\\simulated\\simulated_disagreements.csv",
+      "sha256": "3701ac7d58f38f5ebf81d3e485ddc928a88f93b7685cc7845bcd1cd08a23b464"
+    },
+    "merged": {
+      "path": "C:\\Users\\Acer\\MachineLearning-MVP\\data\\annotations\\simulated\\simulated_merged.csv",
+      "sha256": "30fd3a10feea61437a28fb8113311f1cc4e1db9da8bbe91e4ec34b0d1f077bb4"
+    },
+    "procurement_risk": {
+      "path": "C:\\Users\\Acer\\MachineLearning-MVP\\data\\annotations\\simulated\\simulated_procurement_risk.csv",
+      "sha256": "4262839fb49da8ec873c832207320f3d4282fbac131adbd493e3a192f575d426"
+    },
+    "supply_cost": {
+      "path": "C:\\Users\\Acer\\MachineLearning-MVP\\data\\annotations\\simulated\\simulated_supply_cost.csv",
+      "sha256": "f42b19c953de06a18285aed3c7d99c4dff3a3532b30fa3707acf00f6777a416e"
+    }
+  },
+  "personas": {
+    "slot_1": "simulated_supply_cost_v1",
+    "slot_2": "simulated_procurement_risk_v1"
+  },
+  "production_training_allowed": false,
+  "purpose": "workflow validation and weak-label research only",
+  "schema_version": "s10-news-annotation-simulation.v1",
+  "simulation": true,
+  "source_annotation_manifest_sha256": "ad5c3f6de76fdd5508af1172c99fb8934734bcc37898853b706683f1fb0b8bb4",
+  "timestamp": "2026-08-23T12:00:00Z"
+}

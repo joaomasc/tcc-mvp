@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
+
+os.environ.setdefault("MPLBACKEND", "Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -79,6 +82,7 @@ def experiment(horizon: int, convention: str, vs: bool):
 def main():
     RES.mkdir(parents=True, exist_ok=True)
     FIG.mkdir(parents=True, exist_ok=True)
+    REP.mkdir(parents=True, exist_ok=True)
     df = pd.read_csv(PROC / "mensal_s10_artigo.csv", parse_dates=["data"])
     print(f"Janela artigo: {df['data'].min().date()} -> {df['data'].max().date()} ({len(df)} obs)")
 

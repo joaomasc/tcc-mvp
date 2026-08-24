@@ -1,0 +1,161 @@
+{
+  "scope": "Diesel S10 news-signal challenger — frozen development folds only",
+  "holdout_evaluated": false,
+  "production_promotion_allowed": false,
+  "development_end_index": 583,
+  "folds": [
+    {
+      "fold_id": "validation_1",
+      "validation_start": 427,
+      "validation_end": 479
+    },
+    {
+      "fold_id": "validation_2",
+      "validation_start": 479,
+      "validation_end": 531
+    },
+    {
+      "fold_id": "validation_3",
+      "validation_start": 531,
+      "validation_end": 583
+    }
+  ],
+  "original_folds": [
+    {
+      "fold_id": "validation_1",
+      "validation_start": 429,
+      "validation_end": 481
+    },
+    {
+      "fold_id": "validation_2",
+      "validation_start": 481,
+      "validation_end": 533
+    },
+    {
+      "fold_id": "validation_3",
+      "validation_start": 533,
+      "validation_end": 585
+    }
+  ],
+  "removed_nonweekly_pairs": [
+    "2015-08-09->2015-08-23",
+    "2020-08-16->2020-10-18"
+  ],
+  "news_dataset_sha256": "523a8d502025fc72ea6b87154f114eeeb22735fd2580645f3a4ad562b3c120c9",
+  "parent_news_dataset_sha256": "0ad4747dfe71d570982eb0d2e242dc6ee533d4f009403977485b144baa1aff18",
+  "source_catalog_sha256": "3ca35163bdde3229cc8c5cab8f23bb57e86972a8a07f806139140ce0fe076c3c",
+  "data_quality": {
+    "validation_origins": 156,
+    "origins_with_news": 94,
+    "no_news_rate": 0.3974358974358974,
+    "mean_source_coverage": 0.2724358974358974,
+    "mean_article_count_log1p": 2.099729022010889
+  },
+  "elapsed_seconds": 73.25656870000239,
+  "candidate_count_including_current": 5,
+  "selected_for_future_shadow": null,
+  "selection_gate": "beats current and ARIMA in every development fold, with dictionary replacement rate <= 0.40",
+  "bootstrap_vs_current": null,
+  "ranking": [
+    {
+      "candidate_id": "current_no_news",
+      "mean_rmse": 0.10474050477005291,
+      "worst_rmse": 0.16509143131717585,
+      "mean_mae": 0.05238082163141986,
+      "mean_smape": 0.8505228930284519,
+      "mean_rmse_ratio_vs_current": 1.0,
+      "worst_rmse_ratio_vs_current": 1.0,
+      "mean_rmse_ratio_vs_arima": 0.9949960557607925,
+      "worst_rmse_ratio_vs_arima": 0.9980081373931255,
+      "replacement_rate": 0.34150943396226413,
+      "max_rules": 20,
+      "max_dictionary_size": 20,
+      "latency_ms_p95": 2.5904849999999997,
+      "beats_current_all_folds": false,
+      "beats_arima_all_folds": true,
+      "bounded_replacement_churn": true,
+      "eligible_for_future_shadow": false,
+      "selection_score": 1.2
+    },
+    {
+      "candidate_id": "news_impact_sigma015",
+      "mean_rmse": 0.10492559924654594,
+      "worst_rmse": 0.1651877498243568,
+      "mean_mae": 0.052277745181655066,
+      "mean_smape": 0.8491369109846799,
+      "mean_rmse_ratio_vs_current": 1.0021156708299666,
+      "worst_rmse_ratio_vs_current": 1.0045468660950272,
+      "mean_rmse_ratio_vs_arima": 0.9970938955990901,
+      "worst_rmse_ratio_vs_arima": 0.9991514817845977,
+      "replacement_rate": 0.34507042253521125,
+      "max_rules": 20,
+      "max_dictionary_size": 20,
+      "latency_ms_p95": 3.1243499999999997,
+      "beats_current_all_folds": false,
+      "beats_arima_all_folds": true,
+      "bounded_replacement_churn": true,
+      "eligible_for_future_shadow": false,
+      "selection_score": 1.2032379594956755
+    },
+    {
+      "candidate_id": "news_core_sigma015",
+      "mean_rmse": 0.10495293558635865,
+      "worst_rmse": 0.16525545580753093,
+      "mean_mae": 0.0522100226728321,
+      "mean_smape": 0.8479587062426851,
+      "mean_rmse_ratio_vs_current": 1.0022726010606606,
+      "worst_rmse_ratio_vs_current": 1.0051347533653932,
+      "mean_rmse_ratio_vs_arima": 0.9972487688230441,
+      "worst_rmse_ratio_vs_arima": 0.9989996956757091,
+      "replacement_rate": 0.4716981132075472,
+      "max_rules": 20,
+      "max_dictionary_size": 20,
+      "latency_ms_p95": 3.00915,
+      "beats_current_all_folds": false,
+      "beats_arima_all_folds": true,
+      "bounded_replacement_churn": false,
+      "eligible_for_future_shadow": false,
+      "selection_score": 1.2035478870840306
+    },
+    {
+      "candidate_id": "news_all_sigma030",
+      "mean_rmse": 0.1049020869023109,
+      "worst_rmse": 0.16496072207704318,
+      "mean_mae": 0.05232027183416779,
+      "mean_smape": 0.850148596476405,
+      "mean_rmse_ratio_vs_current": 1.0021340659397495,
+      "worst_rmse_ratio_vs_current": 1.0081036065714342,
+      "mean_rmse_ratio_vs_arima": 0.9971016751245202,
+      "worst_rmse_ratio_vs_arima": 0.9972179759398987,
+      "replacement_rate": 0.47735849056603774,
+      "max_rules": 20,
+      "max_dictionary_size": 20,
+      "latency_ms_p95": 3.1387049999999994,
+      "beats_current_all_folds": false,
+      "beats_arima_all_folds": true,
+      "bounded_replacement_churn": false,
+      "eligible_for_future_shadow": false,
+      "selection_score": 1.2042717982644706
+    },
+    {
+      "candidate_id": "news_core_sigma030",
+      "mean_rmse": 0.10498388738610366,
+      "worst_rmse": 0.1649246803867827,
+      "mean_mae": 0.05252257573611091,
+      "mean_smape": 0.8523438564531949,
+      "mean_rmse_ratio_vs_current": 1.003178021300544,
+      "worst_rmse_ratio_vs_current": 1.0115825530993148,
+      "mean_rmse_ratio_vs_arima": 0.9981331574213429,
+      "worst_rmse_ratio_vs_arima": 1.0004983997767243,
+      "replacement_rate": 0.38113207547169814,
+      "max_rules": 20,
+      "max_dictionary_size": 20,
+      "latency_ms_p95": 3.09692,
+      "beats_current_all_folds": false,
+      "beats_arima_all_folds": false,
+      "bounded_replacement_churn": true,
+      "eligible_for_future_shadow": false,
+      "selection_score": 1.2062223871085953
+    }
+  ]
+}

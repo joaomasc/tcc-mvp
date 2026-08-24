@@ -5,8 +5,16 @@ __pycache__/
 .DS_Store
 data/raw/
 data/processed/
+data/annotations/
 results/
 reports/figures/
 .pytest_cache/
+.pytest-*/
+.coverage
+coverage.xml
+htmlcov/
+.pip-audit-cache/
+.audit-*/
 *.egg-info/
+artifacts/*.joblib
 .ipynb_checkpoints/

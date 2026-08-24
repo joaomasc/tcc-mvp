@@ -41,5 +41,5 @@ def direction_probs(
     delta = sims - y_now
     p_alta = float(np.mean(delta > band))
     p_queda = float(np.mean(delta < -band))
-    p_estavel = float(1.0 - p_alta - p_queda)
+    p_estavel = float(np.mean(np.abs(delta) <= band))
     return {"p_alta": p_alta, "p_estavel": p_estavel, "p_queda": p_queda}

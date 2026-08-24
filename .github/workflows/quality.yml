@@ -1,0 +1,36 @@
+name: quality
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[experiments,production,service,ingest,test]"
+      - name: Dependency consistency
+        run: python -m pip check
+      - name: Lint
+        run: python -m ruff check src scripts tests
+      - name: Type check product layer
+        run: >-
+          python -m mypy --ignore-missing-imports
+          src/vs_epl_krls/audit.py src/vs_epl_krls/anp_official.py
+          src/vs_epl_krls/procurement.py src/vs_epl_krls/product.py
+          src/vs_epl_krls/dashboard.py src/vs_epl_krls/api.py
+          src/vs_epl_krls/passthrough.py src/vs_epl_krls/conditional_interval.py
+          src/vs_epl_krls/causal_ingest.py
+      - name: Audit production dependencies
+        run: python -m pip_audit -r requirements-service.lock --progress-spinner off
+      - name: Compile
+        run: python -m compileall -q src scripts examples
+      - name: Test and coverage
+        run: python -m pytest --cov --cov-report=term-missing --cov-report=xml

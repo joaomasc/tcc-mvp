@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from benchmarks.classical import arima_forecast, arimax_forecast, ma_predict, naive_predict  # noqa: E402
-from benchmarks.gbm import fit_lgbm, fit_xgb, predict_lgbm  # noqa: E402
+from benchmarks.gbm import fit_lgbm, fit_xgb  # noqa: E402
 from benchmarks.lstm import fit_lstm, predict_lstm  # noqa: E402
 from data.build import leak_check  # noqa: E402
 from eval.drift import page_hinkley, psi, rolling_rmse  # noqa: E402
@@ -183,6 +183,61 @@ def run_lstm_wf(X, y, n_min, horizon, refit_every=16, seq_len=8):
     return yhat
 
 
+def forecast_next_model(
+    name,
+    price,
+    X,
+    y,
+    x_next,
+    Xex_full,
+    vs_model=None,
+    vs_scaler=None,
+    seq_len=8,
+):
+    """Fit/update the selected h=1 model and forecast the next observed week."""
+    price = np.asarray(price, dtype=float)
+    X = np.asarray(X, dtype=float)
+    y = np.asarray(y, dtype=float)
+    x_next = np.asarray(x_next, dtype=float).reshape(1, -1)
+    if name == "ARIMA":
+        return float(arima_forecast(price, steps=1, model=None)[0][0]), {}
+    if name == "ARIMAX":
+        Xex_full = np.asarray(Xex_full, dtype=float)
+        point = arimax_forecast(
+            price,
+            Xex_full,
+            Xex_full[-1:],
+            steps=1,
+            model=None,
+        )[0][0]
+        return float(point), {}
+    if name == "naive":
+        return float(naive_predict(price, n=1)[0]), {}
+    if name == "media_movel":
+        return float(ma_predict(price, window=4, n=1)[0]), {}
+    if name == "LightGBM":
+        model = fit_lgbm(X, y)
+        return float(np.asarray(model.predict(x_next)).ravel()[0]), {}
+    if name == "XGBoost":
+        model = fit_xgb(X, y)
+        return float(np.asarray(model.predict(x_next)).ravel()[0]), {}
+    if name == "LSTM":
+        model = fit_lstm(X, y, seq_len=seq_len, epochs=8, hidden=8)
+        point = predict_lstm(model, np.vstack([X, x_next]), seq_len=seq_len)
+        return float(point), {}
+    if name == "VS-ePL-KRLS":
+        if vs_model is None or vs_scaler is None:
+            raise ValueError("modelo e scaler VS-ePL-KRLS sao obrigatorios")
+        # For h=1 the final shifted target has just become observable.
+        vs_model.update(
+            np.clip((X[-1] - vs_scaler[0]) / vs_scaler[1], -0.25, 1.25),
+            float(y[-1]),
+        )
+        xt = np.clip((x_next.ravel() - vs_scaler[0]) / vs_scaler[1], -0.25, 1.25)
+        return float(vs_model.predict_one(xt)), {"n_regras": int(vs_model.n_rules)}
+    raise ValueError(f"modelo de producao nao suportado: {name}")
+
+
 def eval_model(name, y, yhat, y_prev, n_min):
     mask = np.isfinite(yhat) & np.isfinite(y)
     mask[:n_min] = False
@@ -190,10 +245,15 @@ def eval_model(name, y, yhat, y_prev, n_min):
     m["model"] = name
     resid = (y - yhat)
     lo, hi = conformal_p10_p90(resid, yhat)
-    m["coverage_p10_p90"] = coverage(y[mask & np.isfinite(lo)], lo, hi)
-    if np.isfinite(lo[mask]).sum() > 5:
-        m["pinball10"] = pinball(y[mask & np.isfinite(lo)], lo[mask & np.isfinite(lo)], 0.1)
-        m["pinball90"] = pinball(y[mask & np.isfinite(hi)], hi[mask & np.isfinite(hi)], 0.9)
+    interval_mask = mask & np.isfinite(lo) & np.isfinite(hi)
+    m["coverage_p10_p90"] = (
+        coverage(y[interval_mask], lo[interval_mask], hi[interval_mask])
+        if interval_mask.any()
+        else float("nan")
+    )
+    if interval_mask.sum() > 5:
+        m["pinball10"] = pinball(y[interval_mask], lo[interval_mask], 0.1)
+        m["pinball90"] = pinball(y[interval_mask], hi[interval_mask], 0.9)
     e_model = (y[mask] - yhat[mask])
     return m, resid, lo, hi, mask, e_model
 
@@ -216,6 +276,7 @@ def plot_forecast(dates, y, yhat, lo, hi, title, path):
 def main():
     RES.mkdir(parents=True, exist_ok=True)
     FIG.mkdir(parents=True, exist_ok=True)
+    REP.mkdir(parents=True, exist_ok=True)
     all_rows = []
     prod_payload = {}
     for horizon in (1, 2, 4):
@@ -261,7 +322,7 @@ def main():
             print(f"  LSTM indisponivel (exit={r.returncode}); segue sem esse benchmark.")
 
         naive_err = None
-        vs_resid = vs_lo = vs_hi = vs_mask = None
+        eval_artifacts = {}
         for name, yhat in preds.items():
             m, resid, lo, hi, mask, e = eval_model(name, y, yhat, y_prev, n_min)
             m["horizon"] = horizon
@@ -272,9 +333,9 @@ def main():
                 m["dm_vs_naive"] = dm["dm_stat"]
                 m["dm_p"] = dm["pvalue"]
             all_rows.append(m)
+            eval_artifacts[name] = {"resid": resid, "mask": mask}
             print(f"    {name:12s} RMSE={m['rmse']:.4f} MAE={m['mae']:.4f} sMAPE={m['smape']:.2f} dir={m.get('dir_acc', np.nan):.3f}")
             if name == "VS-ePL-KRLS":
-                vs_resid, vs_lo, vs_hi, vs_mask = resid, lo, hi, mask
                 plot_forecast(
                     dates[mask], y[mask], yhat[mask], lo[mask], hi[mask],
                     f"VS-ePL-KRLS semanal h={horizon}",
@@ -320,14 +381,25 @@ def main():
             full[feat_cols] = full[feat_cols].ffill().bfill()
             full = full.dropna(subset=feat_cols).sort_values("data")
             x_last = full[feat_cols].to_numpy(float)[-1]
-            lo_s, span_s = vs_scaler
-            xt = np.clip((x_last - lo_s) / span_s, -0.25, 1.25)
-            yhat_next = vs_model.predict_one(xt) if vs_model.n_rules else float("nan")
-            hist = vs_resid[np.isfinite(vs_resid)]
+            h1_rows = [row for row in all_rows if row["horizon"] == 1]
+            selected = min(h1_rows, key=lambda row: row["rmse"])["model"]
+            yhat_next, model_meta = forecast_next_model(
+                selected,
+                full["revenda"].to_numpy(float),
+                X,
+                y,
+                x_last,
+                full[ARIMAX_COLS].to_numpy(float),
+                vs_model=vs_model,
+                vs_scaler=vs_scaler,
+            )
+            selected_resid = eval_artifacts[selected]["resid"]
+            hist = selected_resid[np.isfinite(selected_resid)]
             q10, q90 = np.quantile(hist[-80:], [0.10, 0.90]) if len(hist) >= 20 else (np.nan, np.nan)
             last_price = float(full["revenda"].iloc[-1])
             probs = direction_probs(hist[-80:] if len(hist) else hist, yhat_next, last_price)
             prod_payload = {
+                "modelo": selected,
                 "ultima_semana_observada": str(pd.Timestamp(full["data"].iloc[-1]).date()),
                 "preco_observado_ultima_semana": last_price,
                 "horizonte": "1 semana",
@@ -335,7 +407,7 @@ def main():
                 "p10": float(yhat_next + q10) if np.isfinite(q10) else None,
                 "p90": float(yhat_next + q90) if np.isfinite(q90) else None,
                 "probabilidades": probs,
-                "n_regras": vs_model.n_rules,
+                **model_meta,
                 "aviso": "Previsao do preco medio nacional de REVENDA. Nao e preco de bomba de um posto especifico.",
             }
             (RES / "previsao_proxima_semana.json").write_text(

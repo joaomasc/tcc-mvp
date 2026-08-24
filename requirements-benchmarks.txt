@@ -1,0 +1,5 @@
+# Optional legacy/batch benchmarks. Not installed in the production service.
+lightgbm>=4.6.0
+xgboost>=2.1.1
+torch>=2.13.0
+

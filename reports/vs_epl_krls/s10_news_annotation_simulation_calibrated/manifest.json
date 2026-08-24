@@ -1,0 +1,104 @@
+{
+  "agreement": {
+    "complete": true,
+    "direction_cohen_kappa": 1.0,
+    "horizon_cohen_kappa": 1.0,
+    "intensity_cohen_kappa": 1.0,
+    "items": 300,
+    "relevance_cohen_kappa": 0.911862636286479,
+    "rows": 600,
+    "rows_per_item": 2
+  },
+  "agreement_gate_kappa_060": true,
+  "batch_id": "annotation:aa41d45b2aa0dfaf92fb9ff43ab464f7525c7e1e4b4f485558969c677d0843fb",
+  "directional_coverage_gate": false,
+  "disagreement_items": 18,
+  "disagreement_rate": 0.06,
+  "human_annotations": false,
+  "independence_gate_nonidentical_labels": true,
+  "intensity_coverage_gate": false,
+  "item_count": 300,
+  "label_distributions": {
+    "procurement_risk_calibrated": {
+      "direction_label": {
+        "neutral": 119,
+        "uncertain": 180,
+        "up": 1
+      },
+      "horizon_label": {
+        "1w": 17,
+        "2w": 65,
+        "4w": 42,
+        "long": 3,
+        "unknown": 173
+      },
+      "intensity_label": {
+        "0": 119,
+        "1": 181
+      },
+      "relevance_label": {
+        "0": 103,
+        "1": 122,
+        "2": 31,
+        "3": 44
+      }
+    },
+    "supply_cost": {
+      "direction_label": {
+        "neutral": 119,
+        "uncertain": 180,
+        "up": 1
+      },
+      "horizon_label": {
+        "1w": 17,
+        "2w": 65,
+        "4w": 42,
+        "long": 3,
+        "unknown": 173
+      },
+      "intensity_label": {
+        "0": 119,
+        "1": 181
+      },
+      "relevance_label": {
+        "0": 85,
+        "1": 140,
+        "2": 31,
+        "3": 44
+      }
+    }
+  },
+  "minimum_items_per_direction_and_high_intensity": 3,
+  "model_promotion_allowed": false,
+  "news_dataset_sha256": "0ad4747dfe71d570982eb0d2e242dc6ee533d4f009403977485b144baa1aff18",
+  "next_required_step": "human review of disagreements and real double annotation",
+  "outputs": {
+    "disagreements": {
+      "path": "data\\annotations\\simulated_calibrated\\simulated_disagreements.csv",
+      "sha256": "0baca713c0b7f85475bfa042f254cde92a10ad58725361dbf7f51a0dbabfb0ed"
+    },
+    "merged": {
+      "path": "data\\annotations\\simulated_calibrated\\simulated_merged.csv",
+      "sha256": "b83f3979118a9bf2e685bd529abb1c1692d3b3563988d9a650cb62812a6014be"
+    },
+    "procurement_risk_calibrated": {
+      "path": "data\\annotations\\simulated_calibrated\\simulated_procurement_risk.csv",
+      "sha256": "949f1e4075955c17ae1f58a7ae4ce9ebedafd40f1aae42403e395fa1183c76a7"
+    },
+    "supply_cost": {
+      "path": "data\\annotations\\simulated_calibrated\\simulated_supply_cost.csv",
+      "sha256": "f42b19c953de06a18285aed3c7d99c4dff3a3532b30fa3707acf00f6777a416e"
+    }
+  },
+  "personas": {
+    "slot_1": "simulated_supply_cost_v1",
+    "slot_2": "simulated_procurement_risk_calibrated_v1"
+  },
+  "production_training_allowed": false,
+  "purpose": "workflow validation and weak-label research only",
+  "schema_version": "s10-news-annotation-simulation.v1",
+  "simulation": true,
+  "simulation_gate_passed": false,
+  "source_annotation_manifest_sha256": "ad5c3f6de76fdd5508af1172c99fb8934734bcc37898853b706683f1fb0b8bb4",
+  "timestamp": "2026-08-23T12:00:00Z"
+}

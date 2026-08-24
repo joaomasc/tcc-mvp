@@ -3,19 +3,29 @@ from __future__ import annotations
 from typing import Tuple
 
 import numpy as np
-import torch
-import torch.nn as nn
+
+try:
+    import torch
+    import torch.nn as nn
+except ImportError:  # optional legacy benchmark
+    torch = None
+    nn = None
 
 
-class TinyLSTM(nn.Module):
-    def __init__(self, n_feat: int, hidden: int = 16):
-        super().__init__()
-        self.lstm = nn.LSTM(n_feat, hidden, batch_first=True)
-        self.head = nn.Linear(hidden, 1)
+if nn is not None:
+    class TinyLSTM(nn.Module):
+        def __init__(self, n_feat: int, hidden: int = 16):
+            super().__init__()
+            self.lstm = nn.LSTM(n_feat, hidden, batch_first=True)
+            self.head = nn.Linear(hidden, 1)
 
-    def forward(self, x):
-        out, _ = self.lstm(x)
-        return self.head(out[:, -1, :]).squeeze(-1)
+        def forward(self, x):
+            out, _ = self.lstm(x)
+            return self.head(out[:, -1, :]).squeeze(-1)
+else:
+    class TinyLSTM:  # type: ignore[no-redef]
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("torch nao instalado; instale requirements-benchmarks.txt")
 
 
 def make_sequences(X: np.ndarray, y: np.ndarray, seq_len: int) -> Tuple[np.ndarray, np.ndarray]:
@@ -38,6 +48,8 @@ def fit_lstm(
     model=None,
     seed: int = 0,
 ):
+    if torch is None or nn is None:
+        raise RuntimeError("torch nao instalado; instale requirements-benchmarks.txt")
     torch.manual_seed(seed)
     Xs, ys = make_sequences(X, y, seq_len)
     if len(ys) < 8:
@@ -61,6 +73,8 @@ def fit_lstm(
 def predict_lstm(model, X: np.ndarray, seq_len: int = 12) -> float:
     if model is None or len(X) < seq_len:
         return float("nan")
+    if torch is None:
+        raise RuntimeError("torch nao instalado; instale requirements-benchmarks.txt")
     x = torch.from_numpy(X[-seq_len:].astype(np.float32)[None, ...])
     model.eval()
     with torch.no_grad():

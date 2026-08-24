@@ -1,0 +1,149 @@
+{
+  "scope": "S10 next challenger — development folds only",
+  "holdout_evaluated": false,
+  "production_promotion_allowed": false,
+  "reason": "the existing holdout has already been opened; fresh future data is required",
+  "development_end_index": 585,
+  "folds": [
+    {
+      "fold_id": "validation_1",
+      "validation_start": 429,
+      "validation_end": 481
+    },
+    {
+      "fold_id": "validation_2",
+      "validation_start": 481,
+      "validation_end": 533
+    },
+    {
+      "fold_id": "validation_3",
+      "validation_start": 533,
+      "validation_end": 585
+    }
+  ],
+  "elapsed_seconds": 117.85570199999893,
+  "direct_candidates": 13,
+  "hybrid_candidates": 9,
+  "best_direct": {
+    "candidate_id": "current_vs_baseline",
+    "feature_set": "lags",
+    "target_mode": "delta",
+    "alpha": 0.26,
+    "beta_initial": 0.18,
+    "alpha_vs1": 0.94,
+    "alpha_vs2": 0.74,
+    "error_threshold": 0.5,
+    "kernel_sigma": 0.15,
+    "regularization": 0.001,
+    "novelty_factor": 0.1,
+    "max_dictionary_size": 20,
+    "max_rules": 20,
+    "beta_min": 0.0001,
+    "beta_recovery_rate": 0.0,
+    "forgetting_factor": 1.0,
+    "dictionary_usage_decay": 1.0,
+    "residual_correction_weight": 1.0,
+    "residual_correction_limit": null,
+    "center_update": "paper",
+    "threshold_policy": "dynamic",
+    "enable_rule_merging": false,
+    "adapt_kernel_width": false
+  },
+  "best_hybrid": {
+    "candidate_id": "hybrid_dynamics_conservative",
+    "feature_set": "dynamics",
+    "target_mode": "delta",
+    "alpha": 0.26,
+    "beta_initial": 0.18,
+    "alpha_vs1": 0.94,
+    "alpha_vs2": 0.74,
+    "error_threshold": 0.5,
+    "kernel_sigma": 0.15,
+    "regularization": 0.001,
+    "novelty_factor": 0.1,
+    "max_dictionary_size": 20,
+    "max_rules": 20,
+    "beta_min": 0.001,
+    "beta_recovery_rate": 0.1,
+    "forgetting_factor": 1.0,
+    "dictionary_usage_decay": 0.995,
+    "residual_correction_weight": 0.5,
+    "residual_correction_limit": 0.1,
+    "center_update": "paper",
+    "threshold_policy": "dynamic",
+    "enable_rule_merging": false,
+    "adapt_kernel_width": false
+  },
+  "best_average_hybrid": "hybrid_lags_paper",
+  "best_direct_validation": {
+    "candidate_id": "current_vs_baseline",
+    "mean_rmse": 0.10815886731320518,
+    "worst_rmse": 0.16614577394176755,
+    "mean_rmse_ratio": 0.9307577844171333,
+    "worst_rmse_ratio": 0.991831111999963,
+    "rmse_ratio_std": 0.10510647761830046,
+    "mean_mae": 0.057490432718012595,
+    "mean_smape": 0.9444304178617898,
+    "latency_ms_p95": 1.4758099999999998,
+    "max_rules": 12,
+    "max_dictionary_size": 20,
+    "dictionary_replacements": 121,
+    "dictionary_replacement_rate": 0.24375,
+    "selection_score": 1.139634654578956,
+    "beats_naive_all_folds": true
+  },
+  "best_hybrid_validation": {
+    "candidate_id": "hybrid_dynamics_conservative",
+    "mean_rmse": 0.10456014851226236,
+    "worst_rmse": 0.16512128945476853,
+    "mean_rmse_ratio_vs_base": 0.9946131392645787,
+    "worst_rmse_ratio_vs_base": 0.9981476893240359,
+    "mean_rmse_ratio_vs_naive": 0.8931295278448409,
+    "ratio_std": 0.0059819751334824044,
+    "latency_ms_p95": 2.2282699999999998,
+    "max_rules": 20,
+    "max_dictionary_size": 20,
+    "replacement_rate": 0.34398496240601506,
+    "selection_score": 1.1948408746427341,
+    "beats_arima_all_folds": true,
+    "bounded_replacement_churn": true,
+    "eligible_for_shadow": true
+  },
+  "comparison": [
+    {
+      "model": "ARIMA+VS residual",
+      "mean_rmse": 0.10456014851226236,
+      "worst_rmse": 0.16512128945476853,
+      "mean_mae": 0.05255151920812761,
+      "mean_smape": 0.8535558905086441
+    },
+    {
+      "model": "ARIMA",
+      "mean_rmse": 0.10505749716596231,
+      "worst_rmse": 0.16545462374769737,
+      "mean_mae": 0.052735253331239136,
+      "mean_smape": 0.8572169921013381
+    },
+    {
+      "model": "VS atual",
+      "mean_rmse": 0.10815886731320519,
+      "worst_rmse": 0.16614577394176755,
+      "mean_mae": 0.057490432718012595,
+      "mean_smape": 0.9444304178617898
+    },
+    {
+      "model": "VS next",
+      "mean_rmse": 0.10815886731320519,
+      "worst_rmse": 0.16614577394176755,
+      "mean_mae": 0.057490432718012595,
+      "mean_smape": 0.9444304178617898
+    },
+    {
+      "model": "persistência",
+      "mean_rmse": 0.11409425992319551,
+      "worst_rmse": 0.1675141785043881,
+      "mean_mae": 0.05594871794871794,
+      "mean_smape": 0.9211420485602444
+    }
+  ]
+}
