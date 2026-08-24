@@ -165,3 +165,159 @@ def test_api_blocks_stale_release_and_normalizes_bad_request_id(service):
         assert client.get("/v1/models", headers=headers).status_code == 503
     finally:
         service._clock = original_clock
+
+
+def test_decision_endpoints_require_configuration(service):
+    """Sem camada de decisao configurada o recurso responde 404, nao 500."""
+
+    app = create_app(service, settings=APISettings(environment="test"))
+    client = TestClient(app)
+
+    assert client.post("/v1/decision", json={"volume_liters": 200_000}).status_code == 404
+    assert client.get("/v1/governance").status_code == 404
+    assert "decision" in client.get("/").json()["resources"]
+
+
+def test_decision_endpoint_returns_an_actionable_recommendation(service, tmp_path):
+    from vs_epl_krls.decision import S10DecisionService
+
+    challenger = tmp_path / "challenger.json"
+    forecast = service.current_forecast
+    challenger.write_text(
+        json.dumps(
+            {
+                "forecast": {
+                    "target_date": forecast.target_date,
+                    "point": forecast.last_observed_price + 5.0,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    gates = tmp_path / "gates.json"
+    gates.write_text(
+        json.dumps(
+            {
+                "holdout_window": {"start": "2024-08-18", "end": "2026-08-09"},
+                "verdict_parity_vs_arima": {"promote": False, "failed_gates": ["x"], "gates": []},
+            }
+        ),
+        encoding="utf-8",
+    )
+    app = create_app(
+        service,
+        settings=APISettings(environment="test"),
+        decision_service=S10DecisionService(
+            service, challenger_forecast=challenger, gate_review=gates
+        ),
+    )
+    client = TestClient(app)
+
+    response = client.post("/v1/decision", json={"volume_liters": 200_000})
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["recommendation"] in {"antecipar", "aguardar"}
+    assert payload["models_agree"] is False
+    assert payload["confidence"] == "baixa"
+    assert len(payload["views"]) == 2
+    assert payload["disclaimer"]
+
+    governance = client.get("/v1/governance")
+    assert governance.status_code == 200
+    assert governance.json()["gate_review"]["verdicts"]["paridade_vs_arima"]["promote"] is False
+
+    # Contrato fechado: campo desconhecido e rejeitado como nos demais recursos.
+    assert client.post("/v1/decision", json={"volume": 10}).status_code == 422
+
+
+def _regional_payload(target_date: str) -> dict:
+    return {
+        "uf": "RS",
+        "region": "sul",
+        "forecast": {
+            "origin_date": "2026-08-16",
+            "target_date": target_date,
+            "origin_price": 6.58,
+            "national_point": 6.9121,
+            "spread_point": -0.3011,
+            "point": 6.611,
+            "lower": 6.5583,
+            "upper": 6.6607,
+            "nominal_coverage": 0.80,
+        },
+        "decision": {"recommend_prebuy": True},
+        "basis": {
+            "uf": "RS",
+            "as_of": "2026-08-16",
+            "state_price_brl_per_liter": 6.58,
+            "national_price_brl_per_liter": 6.89,
+            "current_spread_brl_per_liter": -0.31,
+            "relative_difference": -0.045,
+            "mean_absolute_spread_brl_per_liter": 0.14,
+            "spread_z": -2.96,
+            "spread_percentile": 0.006,
+            "history_weeks": 702,
+            "window_weeks": 52,
+        },
+        "evidence": {
+            "status": "development_only",
+            "holdout_read": False,
+            "prospective_weeks_settled": 0,
+            "prospective_target": 26,
+        },
+    }
+
+
+def _regional_app(service, tmp_path):
+    from vs_epl_krls.decision import S10DecisionService
+
+    path = tmp_path / "rs.json"
+    path.write_text(
+        json.dumps(_regional_payload(service.current_forecast.target_date)), encoding="utf-8"
+    )
+    return create_app(
+        service,
+        settings=APISettings(environment="test"),
+        decision_service=S10DecisionService(service, regional_forecasts={"RS": path}),
+    )
+
+
+def test_decision_endpoint_serves_the_state_the_buyer_actually_pays(service, tmp_path):
+    client = TestClient(_regional_app(service, tmp_path))
+
+    response = client.post("/v1/decision", json={"volume_liters": 200_000, "uf": "RS"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["scope"] == "estadual:RS"
+    assert payload["evidence_status"] == "development_only"
+    assert payload["confidence"] in {"baixa", "media"}
+    assert payload["origin_price_brl_per_liter"] == pytest.approx(6.58)
+    assert "basis" in client.get("/").json()["resources"]
+
+
+def test_basis_endpoint_scales_the_budget_error_by_volume(service, tmp_path):
+    client = TestClient(_regional_app(service, tmp_path))
+
+    small = client.post("/v1/basis", json={"uf": "RS", "volume_liters": 200_000}).json()
+    large = client.post("/v1/basis", json={"uf": "RS", "volume_liters": 1_000_000}).json()
+
+    assert small["annual_budget_error_brl"] == pytest.approx(336_000.0)
+    assert large["annual_budget_error_brl"] == pytest.approx(1_680_000.0)
+    assert small["uf"] == "RS"
+
+
+def test_state_endpoints_reject_unknown_and_malformed_states(service, tmp_path):
+    client = TestClient(_regional_app(service, tmp_path))
+
+    assert client.post("/v1/basis", json={"uf": "SP"}).status_code == 404
+    assert client.post("/v1/decision", json={"uf": "SP"}).status_code == 404
+    # Contrato fechado: UF fora do formato de duas letras nao chega ao servico.
+    assert client.post("/v1/basis", json={"uf": "RIO"}).status_code == 422
+    assert client.post("/v1/decision", json={"uf": "1"}).status_code == 422
+
+
+def test_basis_is_unavailable_without_the_decision_layer(service):
+    client = TestClient(create_app(service, settings=APISettings(environment="test")))
+
+    assert client.post("/v1/basis", json={"uf": "RS"}).status_code == 404

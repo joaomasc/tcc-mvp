@@ -33,6 +33,7 @@ from vs_epl_krls.selection import (
     S10Supervised,
     TemporalFold,
     build_s10_supervised,
+    pinned_validation_folds,
     rank_candidates,
 )
 
@@ -316,6 +317,17 @@ def run(args: argparse.Namespace) -> dict[str, object]:
     }
     if len({data.n_samples for data in datasets.values()}) != 1:
         raise RuntimeError("next-gen feature sets are not origin-aligned")
+    # Os indices herdados do manifesto so continuam apontando para as mesmas
+    # semanas enquanto o alinhamento do painel nao muda.  Resolver a janela
+    # congelada pelas datas e comparar transforma qualquer deslocamento
+    # silencioso em falha explicita.
+    pinned = pinned_validation_folds(datasets["lags"].target_dates)
+    if [asdict(fold) for fold in pinned.folds] != [asdict(fold) for fold in folds]:
+        raise RuntimeError(
+            "os folds do manifesto de producao nao correspondem mais as datas "
+            f"congeladas {pinned.holdout_start_date}..{pinned.holdout_end_date}; "
+            "reavalie o protocolo antes de comparar challengers"
+        )
 
     started = time.perf_counter()
     base = _causal_arima_predictions(datasets["lags"], end=development_end)

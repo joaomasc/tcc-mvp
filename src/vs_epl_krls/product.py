@@ -15,8 +15,49 @@ from .production import S10Forecast, S10ProductionForecaster
 
 SAO_PAULO = ZoneInfo("America/Sao_Paulo")
 
+#: Pacotes cuja versao muda resultado numerico e, portanto, muda previsao.  O
+#: SHA-256 garante que os bytes da release sao os mesmos; ele nao garante que o
+#: runtime que le esses bytes e o mesmo que os escreveu.  Sem esta checagem, uma
+#: atualizacao de dependencia troca a previsao servida sem nenhum sinal — a
+#: mesma classe de falha silenciosa que ja custou uma coluna inteira de dados a
+#: este projeto.
+NUMERIC_RUNTIME_PACKAGES = ("numpy", "pandas", "scikit_learn", "statsmodels", "joblib")
 
-def _strict_json(path: Path) -> dict[str, Any]:
+
+def _installed_runtime_versions() -> dict[str, str]:
+    import joblib
+    import numpy
+    import pandas
+    import sklearn
+    import statsmodels
+
+    return {
+        "numpy": numpy.__version__,
+        "pandas": pandas.__version__,
+        "scikit_learn": sklearn.__version__,
+        "statsmodels": statsmodels.__version__,
+        "joblib": joblib.__version__,
+    }
+
+
+def compare_runtime_versions(recorded: dict[str, Any] | None) -> tuple[str, ...]:
+    """Lista os pacotes numericos cuja versao difere da que gerou a release."""
+
+    if not isinstance(recorded, dict):
+        return ()
+    installed = _installed_runtime_versions()
+    mismatches = []
+    for package in NUMERIC_RUNTIME_PACKAGES:
+        expected = recorded.get(package)
+        current = installed.get(package)
+        if isinstance(expected, str) and current and expected != current:
+            mismatches.append(f"{package}:{expected}!={current}")
+    return tuple(mismatches)
+
+
+def read_trusted_json(path: Path) -> dict[str, Any]:
+    """Le um manifesto local rejeitando chave duplicada e token nao finito."""
+
     def pairs(items: list[tuple[str, Any]]) -> dict[str, Any]:
         result: dict[str, Any] = {}
         for key, value in items:
@@ -53,6 +94,7 @@ class S10OperationalStatus:
     stale_days: int
     primary_model: str
     challenger_status: str
+    runtime_verified: bool
     reasons: tuple[str, ...]
 
     def as_dict(self) -> dict[str, object]:
@@ -92,7 +134,7 @@ class S10ProductService:
     ) -> None:
         self.artifact_path = Path(artifact).resolve()
         self.manifest_path = Path(manifest).resolve()
-        self.release_manifest = _strict_json(self.manifest_path)
+        self.release_manifest = read_trusted_json(self.manifest_path)
         expected_hash = self.release_manifest.get("artifact_sha256")
         if not isinstance(expected_hash, str) or len(expected_hash) != 64:
             raise ValueError("release manifest must contain artifact_sha256")
@@ -109,13 +151,17 @@ class S10ProductService:
         self._forecast = self.model.predict_next()
         self._health = self.model.health()
         self.integrity_verified = True
+        metadata = self.release_manifest.get("metadata")
+        self.runtime_mismatches = compare_runtime_versions(
+            metadata.get("runtime_versions") if isinstance(metadata, dict) else None
+        )
         self.selection_manifest = (
-            _strict_json(Path(selection_manifest).resolve())
+            read_trusted_json(Path(selection_manifest).resolve())
             if selection_manifest is not None
             else None
         )
         self.procurement_report = (
-            _strict_json(Path(procurement_report).resolve())
+            read_trusted_json(Path(procurement_report).resolve())
             if procurement_report is not None
             else None
         )
@@ -140,11 +186,15 @@ class S10ProductService:
         if stale_days:
             reasons.append("forecast_expired")
         reasons.extend(f"challenger:{warning}" for warning in health.warnings)
+        reasons.extend(f"runtime_mismatch:{item}" for item in self.runtime_mismatches)
         serving_ready = self.integrity_verified and stale_days == 0
         status: Literal["healthy", "degraded", "blocked"]
         if not serving_ready:
             status = "blocked"
-        elif health.warnings:
+        elif health.warnings or self.runtime_mismatches:
+            # Degradado, nao bloqueado: os bytes continuam integros e a previsao
+            # continua util, mas quem consome precisa saber que o runtime que le
+            # a release nao e o que a escreveu.
             status = "degraded"
         else:
             status = "healthy"
@@ -160,6 +210,7 @@ class S10ProductService:
             stale_days=stale_days,
             primary_model=forecast.primary_model,
             challenger_status=health.status,
+            runtime_verified=not self.runtime_mismatches,
             reasons=tuple(reasons),
         )
 

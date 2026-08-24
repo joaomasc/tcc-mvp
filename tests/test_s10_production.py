@@ -63,7 +63,7 @@ def test_fit_predict_and_metadata_contract(bundle):
     assert metadata["scope"].startswith("Diesel B S10")
     assert metadata["n_observations"] == 100
     assert len(metadata["data_fingerprint"]) == 64
-    assert metadata["artifact_version"] == "1.1.0"
+    assert metadata["artifact_version"] == "1.2.0"
     assert metadata["interval_monitor_samples"] == 0
 
 
@@ -223,3 +223,128 @@ def test_old_artifact_version_is_rejected(bundle, tmp_path):
     joblib.dump(bundle, path)
     with pytest.raises(RuntimeError, match="unsupported artifact version"):
         S10ProductionForecaster.load(path)
+
+
+def test_interval_level_is_learned_instead_of_fixed(bundle):
+    """O quantil fixo entregou 92,3% de cobertura para um nominal de 80%."""
+
+    from vs_epl_krls.production import S10ProductionForecaster
+
+    start = bundle._interval_alpha()
+    assert start == pytest.approx(1.0 - S10ProductionForecaster.interval_nominal_coverage)
+
+    issued = bundle.predict_next()
+    # Realizacao dentro da banda: alpha sobe e a banda encolhe na proxima semana.
+    bundle.update_one(issued.target_date, (issued.p10 + issued.p90) / 2.0)
+    after_hit = bundle._interval_alpha()
+    assert after_hit > start
+
+    narrower = bundle.predict_next()
+    assert (narrower.p90 - narrower.p10) <= (issued.p90 - issued.p10)
+
+    # Realizacao muito fora: alpha cai e a banda abre.
+    following = bundle.predict_next()
+    bundle.update_one(
+        following.target_date, following.p90 + 5.0, allow_anomalous_change=True
+    )
+    assert bundle._interval_alpha() < after_hit
+
+
+def test_alpha_is_bounded_so_the_band_never_becomes_useless(bundle):
+    from vs_epl_krls.production import S10ProductionForecaster
+
+    low, high = S10ProductionForecaster.interval_alpha_bounds
+
+    # Parte perto do teto para exercitar o limite sem pagar cem refits.
+    bundle.interval_alpha_ = high - 0.001
+    for _ in range(3):
+        issued = bundle.predict_next()
+        bundle.update_one(issued.target_date, (issued.p10 + issued.p90) / 2.0)
+
+    # Só acertos empurram alpha para cima, mas ele para no teto.
+    assert bundle._interval_alpha() == pytest.approx(high)
+    assert bundle.interval_alpha_clips_ > 0
+
+    # E o piso vale na direção oposta.
+    bundle.interval_alpha_ = low + 0.001
+    issued = bundle.predict_next()
+    bundle.update_one(issued.target_date, issued.p90 + 5.0, allow_anomalous_change=True)
+    assert bundle._interval_alpha() == pytest.approx(low)
+
+
+def test_a_release_from_the_previous_contract_still_loads_and_agrees(bundle, tmp_path):
+    """Compatibilidade: artefato 1.1.0 sem estado conformal cai no quantil fixo."""
+
+    from vs_epl_krls.production import S10ProductionForecaster
+
+    modern = bundle.predict_next()
+    artifact = bundle.save(tmp_path / "legacy.joblib")
+
+    legacy = S10ProductionForecaster.load(artifact)
+    # Simula um artefato gravado antes do contrato novo.
+    legacy.artifact_version_ = "1.1.0"
+    # Artefato antigo nao carrega estado conformal nenhum.
+    legacy.__dict__.pop("interval_alpha_", None)
+    reloaded = legacy.save(tmp_path / "as_legacy.joblib")
+    restored = S10ProductionForecaster.load(reloaded)
+
+    assert restored.artifact_version_ == "1.1.0"
+    legacy_forecast = restored.predict_next()
+    # alpha ausente cai no nominal, que reproduz os quantis 0,10/0,90 de antes.
+    assert legacy_forecast.p10 == pytest.approx(modern.p10)
+    assert legacy_forecast.p90 == pytest.approx(modern.p90)
+
+
+def test_an_unknown_contract_is_still_refused(bundle, tmp_path):
+    from vs_epl_krls.production import S10ProductionForecaster
+
+    artifact = bundle.save(tmp_path / "future.joblib")
+    model = S10ProductionForecaster.load(artifact)
+    model.artifact_version_ = "9.9.9"
+    path = model.save(tmp_path / "unsupported.joblib")
+
+    with pytest.raises(RuntimeError, match="unsupported artifact version"):
+        S10ProductionForecaster.load(path)
+
+
+def test_a_fixed_interval_level_cannot_serve_two_volatility_regimes(bundle):
+    """O diagnostico que motivou o conformal: a banda fixa erra dos dois lados."""
+
+    import numpy as np
+
+    rng = np.random.default_rng(3)
+    # Primeiro um regime volatil, depois um calmo — o padrao real desta serie.
+    volatile = rng.normal(scale=0.14, size=90)
+    calm = rng.normal(scale=0.04, size=90)
+    residuals = np.concatenate([volatile, calm])
+
+    def replay(alpha_fixed: float | None) -> tuple[float, float]:
+        alpha = 0.20
+        early, late = [], []
+        for index in range(20, residuals.size):
+            level = alpha_fixed if alpha_fixed is not None else alpha
+            low, high = np.quantile(residuals[:index], [level / 2, 1 - level / 2])
+            covered = bool(low <= residuals[index] <= high)
+            (early if index < 110 else late).append(covered)
+            if alpha_fixed is None:
+                alpha = float(np.clip(alpha + 0.02 * (0.20 - (0.0 if covered else 1.0)), 0.02, 0.5))
+        return float(np.mean(early)), float(np.mean(late))
+
+    fixed_early, fixed_late = replay(0.20)
+    adaptive_early, adaptive_late = replay(None)
+
+    # A banda fixa cobre de menos no regime volatil e de mais no calmo.
+    assert fixed_early < 0.80
+    assert fixed_late > 0.90
+    # O conformal reduz essa distancia entre os dois regimes.
+    assert abs(adaptive_late - adaptive_early) < abs(fixed_late - fixed_early)
+
+
+def test_warm_start_needs_enough_residuals_before_it_moves_anything(bundle):
+    import numpy as np
+
+    bundle.calibration_residuals = np.linspace(-0.05, 0.05, 30)
+    before = bundle._interval_alpha()
+
+    assert bundle.warm_start_interval_alpha() == pytest.approx(before)
+    assert getattr(bundle, "interval_alpha_warm_started_", False) is False

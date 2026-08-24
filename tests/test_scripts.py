@@ -730,3 +730,366 @@ def test_s10_shadow_cli_dispatch_and_atomic_json(monkeypatch, load_script, tmp_p
     monkeypatch.setattr(script, "operate", lambda args: {"mode": "operate"})
     assert script.run(SimpleNamespace(freeze=True))["mode"] == "freeze"
     assert script.run(SimpleNamespace(freeze=False))["mode"] == "operate"
+
+
+from vs_epl_krls.audit import append_audit_record, verify_audit_ledger  # noqa: E402
+
+
+def _parity_forecast_payload(
+    *, target: str, point: float, origin_price: float, lower: float, upper: float
+) -> dict:
+    return {
+        "forecast": {
+            "origin_date": "2026-08-16",
+            "target_date": target,
+            "origin_price": origin_price,
+            "point": point,
+            "lower": lower,
+            "upper": upper,
+        },
+        "decision": {"recommend_prebuy": True},
+    }
+
+
+def test_parity_ledger_settles_only_observed_weeks(tmp_path, load_script):
+    """A contagem prospectiva so avanca quando a semana-alvo e realmente
+    observada, e cada semana e liquidada uma unica vez."""
+
+    script = load_script("23_s10_parity_production.py")
+    ledger = tmp_path / "parity_ledger.jsonl"
+    panel = pd.DataFrame(
+        {
+            "date": pd.to_datetime(["2026-08-09", "2026-08-16"]),
+            "price": [6.91, 6.89],
+        }
+    )
+
+    # Sem previsao registrada nao ha nada a liquidar.
+    assert script.settle_pending_forecast(ledger, panel) is None
+
+    append_audit_record(
+        ledger,
+        event="forecast",
+        payload=_parity_forecast_payload(
+            target="2026-08-23", point=6.9121, origin_price=6.89, lower=6.83, upper=7.01
+        ),
+    )
+    # A semana-alvo ainda nao esta no painel.
+    assert script.settle_pending_forecast(ledger, panel) is None
+    assert len(verify_audit_ledger(ledger)) == 1
+
+
+def test_parity_ledger_scores_against_persistence_and_is_idempotent(tmp_path, load_script):
+    script = load_script("23_s10_parity_production.py")
+    ledger = tmp_path / "parity_ledger.jsonl"
+    panel = pd.DataFrame(
+        {
+            "date": pd.to_datetime(["2026-08-16", "2026-08-23"]),
+            "price": [6.89, 6.95],
+        }
+    )
+    append_audit_record(
+        ledger,
+        event="forecast",
+        payload=_parity_forecast_payload(
+            target="2026-08-23", point=6.9121, origin_price=6.89, lower=6.83, upper=7.01
+        ),
+    )
+
+    settled = script.settle_pending_forecast(ledger, panel)
+
+    assert settled is not None
+    scored = settled["payload"]
+    assert scored["target_date"] == "2026-08-23"
+    assert scored["observed_price"] == pytest.approx(6.95)
+    assert scored["absolute_error"] == pytest.approx(0.0379, abs=1e-6)
+    # A persistencia erraria o dobro nesta semana; e a comparacao que importa.
+    assert scored["persistence_absolute_error"] == pytest.approx(0.06, abs=1e-6)
+    assert scored["interval_covered"] is True
+    assert scored["recommended_prebuy"] is True
+
+    # Reexecutar nao pode inflar a contagem prospectiva.
+    assert script.settle_pending_forecast(ledger, panel) is None
+    records = verify_audit_ledger(ledger)
+    assert [record["event"] for record in records] == ["forecast", "realized"]
+    assert records[-1]["previous_hash"] == records[0]["record_hash"]
+
+
+def test_parity_ledger_flags_an_interval_miss(tmp_path, load_script):
+    script = load_script("23_s10_parity_production.py")
+    ledger = tmp_path / "parity_ledger.jsonl"
+    panel = pd.DataFrame(
+        {"date": pd.to_datetime(["2026-08-23"]), "price": [7.40]}
+    )
+    append_audit_record(
+        ledger,
+        event="forecast",
+        payload=_parity_forecast_payload(
+            target="2026-08-23", point=6.9121, origin_price=6.89, lower=6.83, upper=7.01
+        ),
+    )
+
+    scored = script.settle_pending_forecast(ledger, panel)["payload"]
+
+    assert scored["interval_covered"] is False
+    assert scored["absolute_error"] == pytest.approx(0.4879, abs=1e-6)
+    assert scored["persistence_absolute_error"] == pytest.approx(0.51, abs=1e-6)
+
+
+def test_parity_evidence_records_a_portable_path(tmp_path, load_script):
+    """O manifesto anterior gravava o caminho absoluto da maquina que treinou,
+    o que vazava o usuario local e impedia conferir a proveniencia noutro clone."""
+
+    script = load_script("23_s10_parity_production.py")
+
+    inside = script.repo_relative(script.ROOT / "data" / "processed" / "s10_causal_panel.csv")
+    assert inside == "data/processed/s10_causal_panel.csv"
+    assert ":" not in inside
+
+    outside = script.repo_relative(tmp_path / "painel.csv")
+    assert outside.endswith("painel.csv")
+
+
+def _gate_review_frame(n: int = 60) -> pd.DataFrame:
+    rng = np.random.default_rng(21)
+    dates = pd.date_range("2024-08-18", periods=n, freq="7D")
+    actual = 6.0 + np.cumsum(rng.normal(scale=0.01, size=n))
+    persistence = np.concatenate([[actual[0]], actual[:-1]])
+    paridade = actual + rng.normal(scale=0.02, size=n)
+    return pd.DataFrame(
+        {
+            "target_date": dates,
+            "actual": actual,
+            "persistence": persistence,
+            "paridade": paridade,
+            "paridade__lower": paridade - 0.08,
+            "paridade__upper": paridade + 0.08,
+            "arima": persistence + rng.normal(scale=0.02, size=n),
+            "vs_epl_krls": persistence + rng.normal(scale=0.03, size=n),
+        }
+    )
+
+
+def test_gate_review_scores_models_without_selecting_any(load_script):
+    script = load_script("24_s10_gate_review.py")
+    frame = _gate_review_frame()
+
+    verdict = script.review_parity(frame)
+
+    assert verdict["challenger"] == "paridade"
+    assert verdict["incumbent"] == "ARIMA"
+    assert isinstance(verdict["promote"], bool)
+    assert {gate["name"] for gate in verdict["gates"]} >= {
+        "mae_melhor_que_incumbente",
+        "sem_regressao_em_semana_parada",
+        "intervalo_calibrado",
+    }
+
+
+def test_gate_review_compares_the_published_interval_with_the_conformal_one(load_script):
+    script = load_script("24_s10_gate_review.py")
+    frame = _gate_review_frame(120)
+
+    review = script.review_interval(frame)
+
+    assert review["published"]["n"] == 120
+    assert review["adaptive_conformal"]["n"] == 120
+    assert len(review["alpha_path"]) == 120
+    # A banda publicada e fixa; a conformal tem que variar de largura.
+    widths = np.array(review["upper"]) - np.array(review["lower"])
+    assert widths.std() > 0
+
+
+def test_gate_review_weekly_savings_aligns_with_the_metric_series(load_script):
+    script = load_script("24_s10_gate_review.py")
+    frame = _gate_review_frame()
+
+    savings = script.weekly_savings(frame, "paridade", "paridade")
+
+    assert savings.shape == (len(frame),)
+    assert savings[-1] == 0.0  # a ultima semana nao tem decisao a consumir
+
+
+def test_gate_review_markdown_table_renders_booleans_readably(load_script):
+    script = load_script("24_s10_gate_review.py")
+
+    table = script.markdown_table(
+        [{"name": "gate", "passed": False, "observed": 0.5}],
+        ["name", "passed", "observed"],
+    )
+
+    assert "**nao**" in table
+    assert "| name | passed | observed |" in table
+
+
+def test_parity_production_calibrates_the_interval_level(load_script):
+    """A escala condicional continua do modelo; o nivel vem do conformal."""
+
+    script = load_script("23_s10_parity_production.py")
+    rng = np.random.default_rng(5)
+    n = 260
+    dates = pd.date_range("2020-01-05", periods=n, freq="7D")
+    price = 4.0 + np.cumsum(rng.normal(scale=0.02, size=n))
+    causal = pd.DataFrame(
+        {
+            "date": dates,
+            "price": price,
+            "brent": 70 + np.cumsum(rng.normal(scale=0.5, size=n)),
+            "usdbrl": 5 + np.cumsum(rng.normal(scale=0.01, size=n)),
+            "ulsd": 2 + np.cumsum(rng.normal(scale=0.01, size=n)),
+            "parity": 3 + np.cumsum(rng.normal(scale=0.01, size=n)),
+            "producer_price": 3 + np.cumsum(rng.normal(scale=0.01, size=n)),
+        }
+    )
+    panel = script.build_parity_panel(causal)
+    model = script.PassThroughECM(
+        config=script.PassThroughConfig(), feature_names=script.PARITY_FEATURES
+    ).fit(panel)
+
+    band, diagnostics = script.calibrated_band(model, panel)
+
+    assert diagnostics["available"] is True
+    assert band is not None
+    assert diagnostics["calibration_weeks"] >= 20
+    assert 0.0 < diagnostics["adaptive_conformal"]["empirical_coverage"] <= 1.0
+    lower, upper = band.interval(6.0, scale=0.03)
+    assert lower < 6.0 < upper
+
+
+def test_parity_production_declines_to_calibrate_without_history(load_script):
+    script = load_script("23_s10_parity_production.py")
+
+    class _Stub:
+        config = script.PassThroughConfig()
+
+        def walk_forward(self, panel, start, end):
+            return pd.DataFrame(
+                {"actual": [1.0], "prediction": [1.0], "sigma": [0.1], "lower": [0.9], "upper": [1.1]}
+            )
+
+    band, diagnostics = script.calibrated_band(_Stub(), pd.DataFrame({"a": range(30)}))
+
+    assert band is None
+    assert diagnostics["available"] is False
+
+
+def _spread_panel(n: int = 400, seed: int = 0) -> pd.DataFrame:
+    """Painel estadual sintetico com spread revertendo a media."""
+
+    rng = np.random.default_rng(seed)
+    spread = np.empty(n)
+    spread[0] = -0.05
+    for index in range(1, n):
+        spread[index] = -0.05 + 0.94 * (spread[index - 1] + 0.05) + rng.normal(scale=0.02)
+    national = 6.0 + np.cumsum(rng.normal(scale=0.02, size=n))
+    frame = pd.DataFrame(
+        {
+            "date": pd.date_range("2018-01-07", periods=n, freq="7D"),
+            "price": national + spread,
+            "national_price": national,
+            "stations": 200,
+            "spread": spread,
+        }
+    )
+    frame["origin_price"] = frame["price"].shift(1)
+    frame["y"] = frame["spread"].diff()
+    frame["spread_lag1"] = frame["spread"].shift(1)
+    frame["dspread1"] = frame["y"].shift(1)
+    frame["producer_spread_z"] = rng.normal(size=n)
+    return frame
+
+
+def test_horizon_diagnostic_finds_the_signal_where_the_half_life_predicts(load_script):
+    """Reversao lenta significa sinal minusculo em uma semana e maior no horizonte."""
+
+    script = load_script("30_s10_vs_on_spread.py")
+    panel = _spread_panel(n=500)
+
+    scores = script.horizon_predictability(panel, len(panel))
+
+    assert set(scores) == {"h1", "h2", "h4", "h8", "h12", "h26"}
+    # Um spread que reverte devagar e quase imprevisivel em uma semana...
+    assert scores["h1"] < 0.15
+    # ...e muito mais previsivel em oito e doze.
+    assert scores["h12"] > scores["h1"]
+    assert scores["h8"] > scores["h2"]
+
+
+def test_horizon_diagnostic_declines_gracefully_on_a_short_series(load_script):
+    script = load_script("30_s10_vs_on_spread.py")
+
+    scores = script.horizon_predictability(_spread_panel(n=40), 40)
+
+    # Horizontes que nao cabem na serie simplesmente nao entram.
+    assert "h26" not in scores
+
+
+def test_vs_on_spread_never_learns_a_week_before_predicting_it(load_script):
+    """Prequential estrito: adulterar o futuro nao pode mexer no ja previsto."""
+
+    script = load_script("30_s10_vs_on_spread.py")
+    panel = _spread_panel(n=400, seed=5)
+    start, end = 300, 340
+
+    baseline = script.vs_walk_forward(panel, start, end)
+
+    tampered = panel.copy()
+    tampered.loc[end:, ["spread", "y", "spread_lag1", "dspread1"]] *= 5.0
+    after = script.vs_walk_forward(tampered, start, end)
+
+    assert np.allclose(baseline, after, equal_nan=True)
+    assert np.isfinite(baseline).sum() > 30
+
+
+def test_pooled_estimates_only_use_weeks_before_the_fold(load_script):
+    script = load_script("28_s10_multi_state.py")
+    panels = {uf: _spread_panel(n=400, seed=index) for index, uf in enumerate("ABCD")}
+    cut = panels["A"]["date"].iloc[300]
+
+    estimates = script.fold_estimates(panels, cut)
+
+    assert set(estimates) == set("ABCD")
+    for kappa, error in estimates.values():
+        assert 0.0 <= kappa <= 0.5
+        assert error > 0
+
+    # Estragar o futuro nao pode mudar a estimativa do fold.
+    tampered = {uf: frame.copy() for uf, frame in panels.items()}
+    for frame in tampered.values():
+        frame.loc[300:, ["y", "spread_lag1"]] *= 9.0
+    assert script.fold_estimates(tampered, cut) == estimates
+
+
+def test_ledger_review_script_reports_and_signals_failure(load_script, tmp_path, capsys):
+    from vs_epl_krls.audit import record_forecast
+
+    script = load_script("29_s10_ledger_review.py")
+    ledger = tmp_path / "parado.jsonl"
+    record_forecast(
+        ledger,
+        {
+            "artifact_sha256": "a" * 64,
+            "forecast": {
+                "target_date": "2020-01-05",
+                "origin_price": 6.5,
+                "point": 6.51,
+                "lower": 6.4,
+                "upper": 6.6,
+            },
+            "decision": {"recommend_prebuy": False},
+        },
+        target_date="2020-01-05",
+    )
+
+    import sys as _sys
+
+    argv = _sys.argv
+    try:
+        _sys.argv = ["29", "--ledger", f"parado={ledger}"]
+        code = script.main()
+    finally:
+        _sys.argv = argv
+
+    # Previsao pendente desde 2020: o processo semanal parou.
+    assert code == 1
+    assert "liquidacao_atrasada" in capsys.readouterr().out

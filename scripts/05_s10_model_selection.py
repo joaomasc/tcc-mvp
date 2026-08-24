@@ -35,7 +35,7 @@ from vs_epl_krls.selection import (
     build_s10_supervised,
     candidate_grid,
     evaluate_temporal_fold,
-    expanding_validation_folds,
+    pinned_validation_folds,
     rank_candidates,
 )
 
@@ -202,16 +202,21 @@ def run(args: argparse.Namespace) -> dict[str, object]:
         feature_set: build_s10_supervised(s10, horizon=args.horizon, feature_set=feature_set)
         for feature_set in ("price", "lags", "dynamics")
     }
-    n_samples = datasets["price"].n_samples
     if len({data.n_samples for data in datasets.values()}) != 1:
         raise RuntimeError("feature sets are not aligned")
-    folds, holdout = expanding_validation_folds(
-        n_samples,
-        holdout_size=args.holdout_size,
+    # O corte e resolvido pelas datas-alvo congeladas, nao por ``n_samples``:
+    # ancorado no fim da serie, o holdout escorregava uma posicao a cada semana
+    # nova da ANP e reabria, sem aviso, uma janela diferente da ja avaliada.
+    pinned = pinned_validation_folds(
+        datasets["price"].target_dates,
         validation_size=args.validation_size,
         n_folds=args.n_folds,
-        min_train_size=args.min_train_size,
+        expected_holdout_size=args.holdout_size,
     )
+    folds, holdout = pinned.folds, pinned.holdout
+    if folds[0].validation_start < args.min_train_size:
+        raise ValueError("not enough samples for the requested temporal folds")
+    n_prospective = pinned.prospective.validation_end - pinned.prospective.validation_start
     candidates = candidate_grid(
         horizon=args.horizon,
         random_state=args.random_state,
@@ -424,6 +429,12 @@ def run(args: argparse.Namespace) -> dict[str, object]:
         "data_start": str(pd.Timestamp(s10["date"].min()).date()),
         "data_end": str(pd.Timestamp(s10["date"].max()).date()),
         "n_observations": int(len(s10)),
+        "window_pinned_by": "calendar dates, not sample count",
+        "pinned_holdout_dates": {
+            "start": pinned.holdout_start_date,
+            "end": pinned.holdout_end_date,
+        },
+        "prospective_samples_outside_protocol": int(n_prospective),
         "validation_folds": [asdict(fold) for fold in folds],
         "holdout": asdict(holdout),
         "champion_selected_without_holdout": asdict(champion),

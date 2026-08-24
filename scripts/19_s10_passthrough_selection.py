@@ -37,6 +37,7 @@ from vs_epl_krls.passthrough import (  # noqa: E402
     build_passthrough_panel,
 )
 from vs_epl_krls.procurement import simulate_one_week_prebuy  # noqa: E402
+from vs_epl_krls.selection import pinned_validation_folds  # noqa: E402
 
 HOLDOUT_SIZE = 104
 VALIDATION_SIZE = 52
@@ -50,16 +51,26 @@ def load_panel(path: Path) -> pd.DataFrame:
     return build_passthrough_panel(renamed[["date", "price", "brent", "usdbrl"]])
 
 
-def temporal_windows(n: int) -> tuple[list[tuple[int, int]], tuple[int, int]]:
-    development_end = n - HOLDOUT_SIZE
-    first = development_end - N_FOLDS * VALIDATION_SIZE
-    if first <= 0:
-        raise ValueError("history is too short for the requested protocol")
-    folds = [
-        (first + index * VALIDATION_SIZE, first + (index + 1) * VALIDATION_SIZE)
-        for index in range(N_FOLDS)
-    ]
-    return folds, (development_end, n)
+def temporal_windows(
+    dates: pd.Series,
+) -> tuple[list[tuple[int, int]], tuple[int, int], tuple[int, int]]:
+    """Resolve folds, holdout e cauda prospectiva pelas datas congeladas.
+
+    Ancorar o corte em ``len(panel)`` movia as tres janelas a cada semana nova
+    publicada pela ANP, o que tornava a evidencia irreproduzivel e reabria o
+    holdout sem aviso.
+    """
+
+    pinned = pinned_validation_folds(
+        dates,
+        validation_size=VALIDATION_SIZE,
+        n_folds=N_FOLDS,
+        expected_holdout_size=HOLDOUT_SIZE,
+    )
+    folds = [(fold.validation_start, fold.validation_end) for fold in pinned.folds]
+    holdout = (pinned.holdout.validation_start, pinned.holdout.validation_end)
+    prospective = (pinned.prospective.validation_start, pinned.prospective.validation_end)
+    return folds, holdout, prospective
 
 
 def arima_window(panel: pd.DataFrame, start: int, end: int, *, refit_every: int = 13):
@@ -173,11 +184,16 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     panel = load_panel(args.data)
-    folds, holdout = temporal_windows(len(panel))
+    folds, holdout, prospective = temporal_windows(panel["date"])
     config = PassThroughConfig()
     started = time.perf_counter()
 
     print(f"painel: {len(panel)} semanas, {panel['date'].min().date()} a {panel['date'].max().date()}")
+    print(
+        f"janela congelada: holdout {panel['date'][holdout[0]].date()} a "
+        f"{panel['date'][holdout[1] - 1].date()}; "
+        f"{prospective[1] - prospective[0]} semana(s) prospectiva(s) fora do protocolo"
+    )
     print("folds de desenvolvimento:")
     development_rows: list[dict[str, object]] = []
     development_frames: list[pd.DataFrame] = []
@@ -238,6 +254,8 @@ def main() -> int:
         "data_start": str(panel["date"].min().date()),
         "data_end": str(panel["date"].max().date()),
         "n_observations": int(len(panel)),
+        "window_pinned_by": "calendar dates, not panel length",
+        "prospective_weeks_outside_protocol": int(prospective[1] - prospective[0]),
         "development_folds": [
             {"start": str(panel['date'][a].date()), "end": str(panel['date'][b - 1].date())}
             for a, b in folds

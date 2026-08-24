@@ -1,0 +1,209 @@
+{
+  "hypothesis": "a distancia entre o ultimo preco de produtor publicado e a paridade de importacao corrente antecipa o repasse, sem depender de raspagem de anuncio",
+  "holdout_evaluated": false,
+  "development_end_date": "2024-08-11",
+  "folds": [
+    {
+      "fold_id": "validation_1",
+      "validation_start": 442,
+      "validation_end": 494
+    },
+    {
+      "fold_id": "validation_2",
+      "validation_start": 494,
+      "validation_end": 546
+    },
+    {
+      "fold_id": "validation_3",
+      "validation_start": 546,
+      "validation_end": 598
+    }
+  ],
+  "pressure_coverage_fraction": 0.8477951635846372,
+  "specs": {
+    "paridade": [
+      "dp1",
+      "rpar1",
+      "rpar2",
+      "coint_par"
+    ],
+    "paridade+press": [
+      "dp1",
+      "rpar1",
+      "rpar2",
+      "coint_par",
+      "press1"
+    ],
+    "paridade+press+dpress": [
+      "dp1",
+      "rpar1",
+      "rpar2",
+      "coint_par",
+      "press1",
+      "dpress1"
+    ],
+    "press_only": [
+      "dp1",
+      "press1"
+    ]
+  },
+  "decision_gate": {
+    "name": "paridade@gate_press",
+    "rule": "so dispara quando press_z < PRESSURE_GATE_Z",
+    "threshold_z": 0.0
+  },
+  "summary": [
+    {
+      "spec": "paridade",
+      "mae": 0.0504916145,
+      "rmse": 0.1066843245,
+      "mae_quiet": 0.0169004843,
+      "mae_event": 0.0785500879,
+      "rmse_quiet": 0.0276658863,
+      "rmse_event": 0.1422994997,
+      "directional_accuracy": 0.7428571429,
+      "n": 156,
+      "n_quiet": 71,
+      "n_event": 85,
+      "largest_error_share_of_sse": 0.2877667396,
+      "net_savings_brl": 45161.5384615385,
+      "triggered": 53,
+      "precision": 0.641509434,
+      "largest_event_share": 0.2143587123
+    },
+    {
+      "spec": "paridade+press",
+      "mae": 0.0513215242,
+      "rmse": 0.1048769619,
+      "mae_quiet": 0.0195588378,
+      "mae_event": 0.0778527093,
+      "rmse_quiet": 0.0314773233,
+      "rmse_event": 0.1391369735,
+      "directional_accuracy": 0.7285714286,
+      "n": 156,
+      "n_quiet": 71,
+      "n_event": 85,
+      "largest_error_share_of_sse": 0.2798119671,
+      "net_savings_brl": 49211.5384615385,
+      "triggered": 63,
+      "precision": 0.6349206349,
+      "largest_event_share": 0.1967174678
+    },
+    {
+      "spec": "paridade+press+dpress",
+      "mae": 0.0510799848,
+      "rmse": 0.1049026229,
+      "mae_quiet": 0.0197822159,
+      "mae_event": 0.077222827,
+      "rmse_quiet": 0.0312186487,
+      "rmse_event": 0.1392211326,
+      "directional_accuracy": 0.7428571429,
+      "n": 156,
+      "n_quiet": 71,
+      "n_event": 85,
+      "largest_error_share_of_sse": 0.2807313751,
+      "net_savings_brl": 49026.9230769231,
+      "triggered": 62,
+      "precision": 0.6290322581,
+      "largest_event_share": 0.1974582255
+    },
+    {
+      "spec": "press_only",
+      "mae": 0.053838717,
+      "rmse": 0.1119319119,
+      "mae_quiet": 0.0148907716,
+      "mae_event": 0.0863717068,
+      "rmse_quiet": 0.0256921796,
+      "rmse_event": 0.1498084737,
+      "directional_accuracy": 0.6571428571,
+      "n": 156,
+      "n_quiet": 71,
+      "n_event": 85,
+      "largest_error_share_of_sse": 0.2916866613,
+      "net_savings_brl": 45657.6923076923,
+      "triggered": 47,
+      "precision": 0.6382978723,
+      "largest_event_share": 0.2120293151
+    },
+    {
+      "spec": "paridade@gate_press",
+      "mae": 0.0517704429,
+      "rmse": 0.1075929516,
+      "mae_quiet": 0.016893711,
+      "mae_event": 0.0809027718,
+      "rmse_quiet": 0.0276840502,
+      "rmse_event": 0.1435466341,
+      "directional_accuracy": 0.6928571429,
+      "n": 156,
+      "n_quiet": 71,
+      "n_event": 85,
+      "largest_error_share_of_sse": 0.2829268582,
+      "net_savings_brl": 45161.5384615385,
+      "triggered": 53,
+      "precision": 0.641509434,
+      "largest_event_share": 0.2143587123
+    }
+  ],
+  "mae_comparisons_vs_frozen": {
+    "paridade+press": {
+      "mean_difference": 0.0008299097197842981,
+      "ci90_low": -1.7893444557214852e-05,
+      "ci90_high": 0.0016842785981544305,
+      "pvalue_not_better": 0.9475,
+      "n": 156
+    },
+    "paridade+press+dpress": {
+      "mean_difference": 0.0005883703069668498,
+      "ci90_low": -0.0004492305372753381,
+      "ci90_high": 0.0016694397678359237,
+      "pvalue_not_better": 0.8275,
+      "n": 156
+    },
+    "press_only": {
+      "mean_difference": 0.003347102575396832,
+      "ci90_low": 0.001099328177739582,
+      "ci90_high": 0.005586496243560481,
+      "pvalue_not_better": 0.993,
+      "n": 156
+    },
+    "paridade@gate_press": {
+      "mean_difference": 0.0012788284264095497,
+      "ci90_low": 0.0002759889402647697,
+      "ci90_high": 0.002557987503169563,
+      "pvalue_not_better": 0.9885,
+      "n": 156
+    }
+  },
+  "mechanism": {
+    "available": true,
+    "n": 491,
+    "correlation_with_next_change": -0.26614904708667875,
+    "mean_change_lowest_quintile_brl": 0.04612121212121214,
+    "mean_change_highest_quintile_brl": -0.0008787878787878717,
+    "quintile_spread_brl": 0.047000000000000014,
+    "event_rate_lowest_quintile": 0.5555555555555556,
+    "event_rate_highest_quintile": 0.06060606060606061,
+    "event_rate_overall": 0.3421588594704684
+  },
+  "redundancy": {
+    "available": true,
+    "n": 156,
+    "overlap_with_frozen_features": {
+      "rpar1": -0.20836958689415364,
+      "rpar2": -0.19382175641578686,
+      "coint_par": -0.06404532297021129
+    },
+    "correlation_with_frozen_residual": -0.35585081983326866,
+    "spearman_with_frozen_residual": -0.1615147539947211,
+    "trimmed_correlations": {
+      "pearson_sem_1_maiores": -0.29852919254957855,
+      "pearson_sem_3_maiores": -0.20944731759815866,
+      "pearson_sem_5_maiores": -0.20813865650351468
+    },
+    "n_below_gate": 147,
+    "n_at_or_above_gate": 9,
+    "tail_dependence_fraction": 0.41141819570264393,
+    "verdict": "41% da correlacao de Pearson vem de tres semanas; em posto (Spearman) sobra -0.16"
+  },
+  "n_development_rows": 156
+}

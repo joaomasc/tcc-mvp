@@ -1,8 +1,8 @@
 {
   "contract_version": "parity-1.0.0",
-  "generated_from_panel": "C:\\Users\\Acer\\MachineLearning-MVP\\data\\processed\\s10_causal_panel.csv",
-  "data_fingerprint": "fb47f21bd5ff43cc2a5aefd53b1e50fedb695b555596ff8035e3e6a22367cb6d",
-  "n_train": 649,
+  "generated_from_panel": "data/processed/s10_causal_panel.csv",
+  "data_fingerprint": "240023cfe4796ba1e978678f4834f44d8fec5385b07c0a6210579aa459e61ff6",
+  "n_train": 650,
   "features": [
     "dp1",
     "rpar1",
@@ -10,33 +10,72 @@
     "coint_par"
   ],
   "coefficients": {
-    "intercept": 0.00123935,
-    "dp1": 0.30831299,
-    "rpar1": 0.039472,
-    "rpar2": 0.01722381,
-    "coint_par": -0.00020592
+    "intercept": 0.00127306,
+    "dp1": 0.30830764,
+    "rpar1": 0.03940434,
+    "rpar2": 0.01720199,
+    "coint_par": -0.00020931
   },
   "forecast": {
-    "origin_date": "2026-08-09",
-    "target_date": "2026-08-16",
-    "origin_price": 6.91,
-    "point": 6.887856,
-    "delta": -0.022144,
-    "lower": 6.834358,
-    "upper": 6.951792,
+    "origin_date": "2026-08-16",
+    "target_date": "2026-08-23",
+    "origin_price": 6.89,
+    "point": 6.912116,
+    "delta": 0.022116,
+    "lower": 6.838977,
+    "upper": 6.989709,
     "nominal_coverage": 0.8,
-    "conditional_sigma": 0.050822,
+    "conditional_sigma": 0.076397,
     "fallback_used": false,
-    "reason": ""
+    "reason": "",
+    "fixed_quantile_lower": 6.830971,
+    "fixed_quantile_upper": 7.007817,
+    "interval_method": "adaptive_conformal_normalized"
+  },
+  "interval_calibration": {
+    "available": true,
+    "calibration_weeks": 156,
+    "fixed_quantile": {
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.9038461538461539,
+      "calibration_error": 0.10384615384615381,
+      "mean_width": 0.08582020580763346,
+      "median_width": 0.0747731261369089,
+      "mean_winkler": 0.15668765757981773,
+      "n": 156
+    },
+    "adaptive_conformal": {
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.7884615384615384,
+      "calibration_error": -0.011538461538461608,
+      "mean_width": 0.06914539727286616,
+      "median_width": 0.05249208836043895,
+      "mean_winkler": 0.1524826163188592,
+      "n": 156
+    },
+    "winkler_improvement": 0.004205,
+    "width_reduction_fraction": 0.194299,
+    "state": {
+      "nominal_coverage": 0.8,
+      "alpha_target": 0.19999999999999996,
+      "alpha_current": 0.16399999999999992,
+      "gamma": 0.02,
+      "residuals_in_window": 156,
+      "updates": 156,
+      "covered": 123,
+      "clipped_steps": 0,
+      "warmed_up": true,
+      "running_coverage": 0.7884615384615384
+    }
   },
   "decision": {
     "policy": "antecipar 25% de uma semana quando a alta prevista supera R$ 0,01/L",
     "signal_threshold_brl_per_liter": 0.01,
-    "expected_change_brl_per_liter": -0.022144,
-    "recommend_prebuy": false,
-    "liters_if_triggered": 0.0,
-    "expected_saving_brl": 0.0
+    "expected_change_brl_per_liter": 0.022116,
+    "recommend_prebuy": true,
+    "liters_if_triggered": 11538.5,
+    "expected_saving_brl": 255.19
   },
-  "artifact_sha256": "08d657d7f620d741b38a023c73599dc324d1f09a41dec30ac688acff667b26a2",
-  "artifact_bytes": 47652
+  "artifact_sha256": "ee695c540ce2609c76de5ca6ee2bfabc19662a1b647d4933e4bd6a733b001cd4",
+  "artifact_bytes": 47607
 }

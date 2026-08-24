@@ -1,0 +1,88 @@
+{
+  "contract_version": "regional-1.0.0",
+  "uf": "RS",
+  "region": "sul",
+  "generated_from_panel": "data/processed/s10_panel_rs.csv",
+  "data_fingerprint": "d0b6c926ae4493f9591401894b17fbbe67f1919499ea6eddcf172ab0ee48386f",
+  "n_train": 701,
+  "spread_model": {
+    "fitted": true,
+    "n_train": 701,
+    "reversion_kappa": 0.033406,
+    "half_life_weeks": 20.4,
+    "target_mean": -0.044504,
+    "anchor_weight": 0.0,
+    "residual_sigma": 0.026243,
+    "uses_producer_anchor": false
+  },
+  "forecast": {
+    "origin_date": "2026-08-16",
+    "target_date": "2026-08-23",
+    "origin_price": 6.58,
+    "national_point": 6.912116,
+    "spread_point": -0.301131,
+    "point": 6.610985,
+    "delta": 0.030985,
+    "lower": 6.558346,
+    "upper": 6.660701,
+    "nominal_coverage": 0.8,
+    "interval_method": "adaptive_conformal",
+    "fallback_used": false,
+    "reason": ""
+  },
+  "decision": {
+    "policy": "antecipar 25% de uma semana quando a alta prevista supera R$ 0,01/L",
+    "signal_threshold_brl_per_liter": 0.01,
+    "expected_change_brl_per_liter": 0.030985,
+    "recommend_prebuy": true,
+    "liters_if_triggered": 11538.5,
+    "expected_saving_brl": 357.52
+  },
+  "basis": {
+    "uf": "RS",
+    "as_of": "2026-08-16",
+    "state_price_brl_per_liter": 6.58,
+    "national_price_brl_per_liter": 6.89,
+    "current_spread_brl_per_liter": -0.3099999999999996,
+    "relative_difference": -0.0449927431059506,
+    "window_weeks": 52,
+    "mean_absolute_spread_brl_per_liter": 0.13999999999999996,
+    "spread_z": -2.955021563579854,
+    "spread_percentile": 0.005698005698005698,
+    "history_weeks": 702
+  },
+  "interval_calibration": {
+    "available": true,
+    "calibration_weeks": 156,
+    "adaptive_conformal": {
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.7756410256410257,
+      "calibration_error": -0.024358974358974383,
+      "mean_width": 0.36651728914779025,
+      "median_width": 0.07496481234513963,
+      "mean_winkler": 0.4720770167143834,
+      "n": 156
+    },
+    "state": {
+      "nominal_coverage": 0.8,
+      "alpha_target": 0.19999999999999996,
+      "alpha_current": 0.1239999999999999,
+      "gamma": 0.02,
+      "residuals_in_window": 156,
+      "updates": 156,
+      "covered": 121,
+      "clipped_steps": 0,
+      "warmed_up": true,
+      "running_coverage": 0.7756410256410257
+    }
+  },
+  "evidence": {
+    "status": "development_only",
+    "holdout_read": false,
+    "prospective_weeks_settled": 0,
+    "prospective_target": 26,
+    "note": "avaliado apenas em folds de desenvolvimento ate 2024-08-11; o holdout estadual permanece fechado"
+  },
+  "artifact_sha256": "105ec514b0bdebb5ba985060a38d557a4f5e167262bf48cd17f5caa8f3eab45a",
+  "artifact_bytes": 1466
+}

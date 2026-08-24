@@ -1,0 +1,306 @@
+{
+  "monthly_liters": 200000.0,
+  "definitions": {
+    "lucratividade": "sobre os disparos da politica: taxa de acerto, fator de lucro, expectativa por disparo e retorno sobre o gasto com combustivel",
+    "acerto_de_movimento": "fracao das semanas em que a direcao prevista bateu com a realizada, excluindo semanas paradas; reportado tambem so nas semanas de evento",
+    "acerto_de_preco": "fracao das semanas com erro dentro de 1, 2, 5 e 10 centavos por litro, mais a cobertura do intervalo P10-P90"
+  },
+  "reports": [
+    {
+      "model": "paridade",
+      "window": "holdout nacional, 104 semanas",
+      "profitability": {
+        "triggers": 26,
+        "winning_triggers": 17,
+        "win_rate": 0.6538461538461539,
+        "profit_factor": 56.999999999999524,
+        "expectancy_brl": 745.5621301775147,
+        "gross_profit_brl": 19730.76923076923,
+        "gross_loss_brl": 346.15384615384903,
+        "net_savings_brl": 19384.615384615383,
+        "return_on_spend": 0.0006355836019430698,
+        "annualized_savings_brl": 9786.40776699029,
+        "annualized_ci90_brl": [
+          990.291262135922,
+          25284.46601941748
+        ],
+        "largest_event_share": 0.4404761904761902,
+        "weeks": 103
+      },
+      "movement": {
+        "hit_rate_moved": 0.7183098591549296,
+        "n_moved": 71,
+        "hit_rate_events": 0.8,
+        "n_events": 35,
+        "hit_rate_quiet": 0.6388888888888888,
+        "n_quiet": 69,
+        "threshold_brl": 0.02
+      },
+      "price": {
+        "within": {
+          "0.01": 0.41346153846153844,
+          "0.02": 0.6826923076923077,
+          "0.05": 0.9326923076923077,
+          "0.10": 0.9615384615384616
+        },
+        "median_absolute_error": 0.01334033119874567,
+        "mean_absolute_error": 0.0275209036478789,
+        "interval_coverage": 0.8942307692307693,
+        "interval_nominal": 0.8,
+        "n": 104
+      },
+      "notes": [
+        "holdout lido duas vezes; o otimismo de reuso esta embutido"
+      ]
+    },
+    {
+      "model": "ARIMA",
+      "window": "holdout nacional, 104 semanas",
+      "profitability": {
+        "triggers": 8,
+        "winning_triggers": 6,
+        "win_rate": 0.75,
+        "profit_factor": Infinity,
+        "expectancy_brl": 2120.1923076923076,
+        "gross_profit_brl": 16961.53846153846,
+        "gross_loss_brl": -0.0,
+        "net_savings_brl": 16961.53846153846,
+        "return_on_spend": 0.0005561356517001861,
+        "annualized_savings_brl": 8563.106796116504,
+        "annualized_ci90_brl": [
+          116.5048543689399,
+          23653.398058252424
+        ],
+        "largest_event_share": 0.5034013605442174,
+        "weeks": 103
+      },
+      "movement": {
+        "hit_rate_moved": 0.5915492957746479,
+        "n_moved": 71,
+        "hit_rate_events": 0.8,
+        "n_events": 35,
+        "hit_rate_quiet": 0.3888888888888889,
+        "n_quiet": 69,
+        "threshold_brl": 0.02
+      },
+      "price": {
+        "within": {
+          "0.01": 0.5096153846153846,
+          "0.02": 0.7211538461538461,
+          "0.05": 0.8942307692307693,
+          "0.10": 0.9615384615384616
+        },
+        "median_absolute_error": 0.009999999999999787,
+        "mean_absolute_error": 0.027068855125188494,
+        "interval_coverage": null,
+        "interval_nominal": null,
+        "n": 104
+      },
+      "notes": [
+        "holdout lido duas vezes; o otimismo de reuso esta embutido"
+      ]
+    },
+    {
+      "model": "persistencia",
+      "window": "holdout nacional, 104 semanas",
+      "profitability": {
+        "triggers": 0,
+        "winning_triggers": 0,
+        "win_rate": null,
+        "profit_factor": null,
+        "expectancy_brl": null,
+        "gross_profit_brl": 0.0,
+        "gross_loss_brl": -0.0,
+        "net_savings_brl": 0.0,
+        "return_on_spend": 0.0,
+        "annualized_savings_brl": 0.0,
+        "annualized_ci90_brl": [
+          0.0,
+          0.0
+        ],
+        "largest_event_share": null,
+        "weeks": 103
+      },
+      "movement": {
+        "hit_rate_moved": 0.0,
+        "n_moved": 71,
+        "hit_rate_events": 0.0,
+        "n_events": 35,
+        "hit_rate_quiet": 0.0,
+        "n_quiet": 69,
+        "threshold_brl": 0.02
+      },
+      "price": {
+        "within": {
+          "0.01": 0.5192307692307693,
+          "0.02": 0.6634615384615384,
+          "0.05": 0.9134615384615384,
+          "0.10": 0.9519230769230769
+        },
+        "median_absolute_error": 0.009999999999999787,
+        "mean_absolute_error": 0.03259615384615387,
+        "interval_coverage": null,
+        "interval_nominal": null,
+        "n": 104
+      },
+      "notes": [
+        "holdout lido duas vezes; o otimismo de reuso esta embutido"
+      ]
+    },
+    {
+      "model": "RS nacional+spread",
+      "window": "desenvolvimento RS, 156 semanas",
+      "profitability": {
+        "triggers": 60,
+        "winning_triggers": 36,
+        "win_rate": 0.6,
+        "profit_factor": 7.153374233128831,
+        "expectancy_brl": 771.5384615384613,
+        "gross_profit_brl": 53815.384615384595,
+        "gross_loss_brl": 7523.076923076924,
+        "net_savings_brl": 46292.30769230768,
+        "return_on_spend": 0.0010797299275730511,
+        "annualized_savings_brl": 15631.168831168827,
+        "annualized_ci90_brl": [
+          6712.012987012971,
+          26292.662337662336
+        ],
+        "largest_event_share": 0.2183449651046861,
+        "weeks": 154
+      },
+      "movement": {
+        "hit_rate_moved": 0.6956521739130435,
+        "n_moved": 138,
+        "hit_rate_events": 0.7471264367816092,
+        "n_events": 87,
+        "hit_rate_quiet": 0.6078431372549019,
+        "n_quiet": 69,
+        "threshold_brl": 0.02
+      },
+      "price": {
+        "within": {
+          "0.01": 0.20512820512820512,
+          "0.02": 0.3717948717948718,
+          "0.05": 0.7051282051282052,
+          "0.10": 0.8461538461538461
+        },
+        "median_absolute_error": 0.028170846848324604,
+        "mean_absolute_error": 0.05729362306049925,
+        "interval_coverage": null,
+        "interval_nominal": null,
+        "n": 156
+      },
+      "notes": [
+        "holdout estadual nunca aberto"
+      ]
+    },
+    {
+      "model": "RS direto",
+      "window": "desenvolvimento RS, 156 semanas",
+      "profitability": {
+        "triggers": 56,
+        "winning_triggers": 29,
+        "win_rate": 0.5178571428571429,
+        "profit_factor": 4.874413145539911,
+        "expectancy_brl": 680.1510989010987,
+        "gross_profit_brl": 47919.23076923075,
+        "gross_loss_brl": 9830.769230769216,
+        "net_savings_brl": 38088.46153846153,
+        "return_on_spend": 0.0008883819767992626,
+        "annualized_savings_brl": 12861.038961038957,
+        "annualized_ci90_brl": [
+          4133.376623376611,
+          23012.92207792207
+        ],
+        "largest_event_share": 0.26537412905180263,
+        "weeks": 154
+      },
+      "movement": {
+        "hit_rate_moved": 0.6521739130434783,
+        "n_moved": 138,
+        "hit_rate_events": 0.6896551724137931,
+        "n_events": 87,
+        "hit_rate_quiet": 0.5882352941176471,
+        "n_quiet": 69,
+        "threshold_brl": 0.02
+      },
+      "price": {
+        "within": {
+          "0.01": 0.20512820512820512,
+          "0.02": 0.3717948717948718,
+          "0.05": 0.6923076923076923,
+          "0.10": 0.8461538461538461
+        },
+        "median_absolute_error": 0.02977702083279743,
+        "mean_absolute_error": 0.059437147568395174,
+        "interval_coverage": null,
+        "interval_nominal": null,
+        "n": 156
+      },
+      "notes": [
+        "holdout estadual nunca aberto"
+      ]
+    },
+    {
+      "model": "RS persistencia",
+      "window": "desenvolvimento RS, 156 semanas",
+      "profitability": {
+        "triggers": 0,
+        "winning_triggers": 0,
+        "win_rate": null,
+        "profit_factor": null,
+        "expectancy_brl": null,
+        "gross_profit_brl": 0.0,
+        "gross_loss_brl": -0.0,
+        "net_savings_brl": 0.0,
+        "return_on_spend": 0.0,
+        "annualized_savings_brl": 0.0,
+        "annualized_ci90_brl": [
+          0.0,
+          0.0
+        ],
+        "largest_event_share": null,
+        "weeks": 154
+      },
+      "movement": {
+        "hit_rate_moved": 0.0,
+        "n_moved": 138,
+        "hit_rate_events": 0.0,
+        "n_events": 87,
+        "hit_rate_quiet": 0.0,
+        "n_quiet": 69,
+        "threshold_brl": 0.02
+      },
+      "price": {
+        "within": {
+          "0.01": 0.30128205128205127,
+          "0.02": 0.4423076923076923,
+          "0.05": 0.7243589743589743,
+          "0.10": 0.8525641025641025
+        },
+        "median_absolute_error": 0.02999999999999936,
+        "mean_absolute_error": 0.05973076923076919,
+        "interval_coverage": null,
+        "interval_nominal": null,
+        "n": 156
+      },
+      "notes": [
+        "holdout estadual nunca aberto"
+      ]
+    }
+  ],
+  "prospective": {
+    "paridade": {
+      "forecasts": 1,
+      "settled": 0,
+      "movement_hit_rate": null,
+      "mae": null
+    },
+    "regional_rs": {
+      "forecasts": 1,
+      "settled": 0,
+      "movement_hit_rate": null,
+      "mae": null
+    }
+  }
+}

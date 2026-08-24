@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from vs_epl_krls.api import APISettings, create_app
+from vs_epl_krls.decision import S10DecisionService
 from vs_epl_krls.product import S10ProductService
 
 
@@ -36,6 +37,23 @@ def main() -> int:
         type=Path,
         default=ROOT / "reports" / "vs_epl_krls" / "s10_product" / "procurement_backtest.json",
     )
+    parser.add_argument(
+        "--challenger-forecast",
+        type=Path,
+        default=ROOT / "reports" / "vs_epl_krls" / "s10_parity" / "latest_forecast.json",
+    )
+    parser.add_argument(
+        "--gate-review",
+        type=Path,
+        default=ROOT / "reports" / "vs_epl_krls" / "s10_gates" / "manifest.json",
+    )
+    parser.add_argument(
+        "--state",
+        action="append",
+        default=None,
+        metavar="UF",
+        help="unidade da federacao a servir; repita para varias. Padrao: RS se existir.",
+    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--workers", type=int, default=1)
@@ -49,7 +67,33 @@ def main() -> int:
         selection_manifest=args.selection_manifest,
         procurement_report=args.procurement_report,
     )
-    application = create_app(service, settings=APISettings.from_environment())
+    reports = ROOT / "reports" / "vs_epl_krls"
+    regional = {}
+    for uf in args.state or ["RS"]:
+        code = str(uf).strip().upper()
+        candidate = reports / f"s10_{code.lower()}" / "latest_forecast.json"
+        if candidate.is_file():
+            regional[code] = candidate
+        elif args.state:
+            raise SystemExit(f"previsao estadual ausente para {code}: {candidate}")
+    decision = S10DecisionService(
+        service,
+        challenger_forecast=args.challenger_forecast if args.challenger_forecast.is_file() else None,
+        gate_review=args.gate_review if args.gate_review.is_file() else None,
+        regional_forecasts=regional,
+        ledgers={
+            "paridade": reports / "s10_parity" / "parity_ledger.jsonl",
+            **{
+                f"regional_{uf.lower()}": reports / f"s10_{uf.lower()}" / f"{uf.lower()}_ledger.jsonl"
+                for uf in regional
+            },
+        },
+    )
+    application = create_app(
+        service,
+        settings=APISettings.from_environment(),
+        decision_service=decision,
+    )
     import uvicorn
 
     uvicorn.run(

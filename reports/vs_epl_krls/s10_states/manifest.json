@@ -1,0 +1,218 @@
+{
+  "scope": "Diesel B S10, revenda media estadual da ANP",
+  "holdout_evaluated": false,
+  "states": [
+    "SP",
+    "MG",
+    "RS",
+    "PR",
+    "SC",
+    "MT",
+    "GO",
+    "BA",
+    "PA",
+    "RO"
+  ],
+  "development_end_date": "2024-08-11",
+  "folds": [
+    {
+      "fold_id": "validation_1",
+      "validation_start": 441,
+      "validation_end": 493
+    },
+    {
+      "fold_id": "validation_2",
+      "validation_start": 493,
+      "validation_end": 545
+    },
+    {
+      "fold_id": "validation_3",
+      "validation_start": 545,
+      "validation_end": 597
+    }
+  ],
+  "pooling": [
+    {
+      "fold": "validation_1",
+      "from_date": "2021-08-15",
+      "pooled_kappa": 0.12357055011734416,
+      "between_variance": 0.004722455991914078,
+      "heterogeneity_q": 128.7020358767781,
+      "n_states": 10,
+      "weights": {
+        "SP": 0.9455800460537483,
+        "MG": 0.8898290344173397,
+        "RS": 0.9471960038628184,
+        "PR": 0.9808811154025676,
+        "SC": 0.9462038487446921,
+        "MT": 0.8605238654327803,
+        "GO": 0.8876961484306092,
+        "BA": 0.7960849881920771,
+        "PA": 0.902617293328825,
+        "RO": 0.8698935814471076
+      }
+    },
+    {
+      "fold": "validation_2",
+      "from_date": "2022-08-14",
+      "pooled_kappa": 0.1276215304264235,
+      "between_variance": 0.004890350448231771,
+      "heterogeneity_q": 143.333146318839,
+      "n_states": 10,
+      "weights": {
+        "SP": 0.9368593945251492,
+        "MG": 0.9008175685024126,
+        "RS": 0.9670064330588306,
+        "PR": 0.9809858679991552,
+        "SC": 0.9513748613756874,
+        "MT": 0.8787558554336811,
+        "GO": 0.8765732976885512,
+        "BA": 0.8173259504397073,
+        "PA": 0.9141384616059093,
+        "RO": 0.8924410261617566
+      }
+    },
+    {
+      "fold": "validation_3",
+      "from_date": "2023-08-20",
+      "pooled_kappa": 0.11650606499273802,
+      "between_variance": 0.0038238155268819633,
+      "heterogeneity_q": 129.20154723267572,
+      "n_states": 10,
+      "weights": {
+        "SP": 0.9336121262037226,
+        "MG": 0.9272718545661713,
+        "RS": 0.9590120071106458,
+        "PR": 0.9704045820262154,
+        "SC": 0.9295979518841327,
+        "MT": 0.8306502434478973,
+        "GO": 0.8806452494010787,
+        "BA": 0.807811187404055,
+        "PA": 0.8825201122775943,
+        "RO": 0.9505335303518476
+      }
+    }
+  ],
+  "summary": [
+    {
+      "uf": "SP",
+      "postos": 1013.0,
+      "peso_proprio": 0.9386838556,
+      "mae_local": 0.0494541242,
+      "mae_pooled": 0.0494292198,
+      "mae_postos": 0.0494389967,
+      "ganho_pooled": 0.0005035851,
+      "decidivel_pooled": true,
+      "ganho_postos": 0.0003058896,
+      "decidivel_postos": false
+    },
+    {
+      "uf": "MG",
+      "postos": 368.5,
+      "peso_proprio": 0.9059728192,
+      "mae_local": 0.0584324549,
+      "mae_pooled": 0.0585049389,
+      "mae_postos": 0.0575561076,
+      "ganho_pooled": -0.0012404749,
+      "decidivel_pooled": false,
+      "ganho_postos": 0.0149976123,
+      "decidivel_postos": true
+    },
+    {
+      "uf": "RS",
+      "postos": 261.5,
+      "peso_proprio": 0.957738148,
+      "mae_local": 0.0572936231,
+      "mae_pooled": 0.0573100055,
+      "mae_postos": 0.0572626508,
+      "ganho_pooled": -0.0002859388,
+      "decidivel_pooled": false,
+      "ganho_postos": 0.0005405884,
+      "decidivel_postos": false
+    },
+    {
+      "uf": "PR",
+      "postos": 231.5,
+      "peso_proprio": 0.9774238551,
+      "mae_local": 0.0553808921,
+      "mae_pooled": 0.0553849402,
+      "mae_postos": 0.0553951535,
+      "ganho_pooled": -7.30954e-05,
+      "decidivel_pooled": false,
+      "ganho_postos": -0.0002575145,
+      "decidivel_postos": false
+    },
+    {
+      "uf": "BA",
+      "postos": 199.0,
+      "peso_proprio": 0.807074042,
+      "mae_local": 0.1132609053,
+      "mae_pooled": 0.1119451686,
+      "mae_postos": 0.1114488132,
+      "ganho_pooled": 0.0116168648,
+      "decidivel_pooled": true,
+      "ganho_postos": 0.0159992725,
+      "decidivel_postos": true
+    },
+    {
+      "uf": "SC",
+      "postos": 174.0,
+      "peso_proprio": 0.9423922207,
+      "mae_local": 0.0552705069,
+      "mae_pooled": 0.0552348617,
+      "mae_postos": 0.0556226605,
+      "ganho_pooled": 0.0006449222,
+      "decidivel_pooled": true,
+      "ganho_postos": -0.0063714553,
+      "decidivel_postos": false
+    },
+    {
+      "uf": "GO",
+      "postos": 117.0,
+      "peso_proprio": 0.8816382318,
+      "mae_local": 0.0663213408,
+      "mae_pooled": 0.0663614841,
+      "mae_postos": 0.0661469789,
+      "ganho_pooled": -0.0006052854,
+      "decidivel_pooled": false,
+      "ganho_postos": 0.0026290466,
+      "decidivel_postos": true
+    },
+    {
+      "uf": "PA",
+      "postos": 97.0,
+      "peso_proprio": 0.8997586224,
+      "mae_local": 0.0793076635,
+      "mae_pooled": 0.0792832094,
+      "mae_postos": 0.0800055801,
+      "ganho_pooled": 0.0003083452,
+      "decidivel_pooled": false,
+      "ganho_postos": -0.0088001149,
+      "decidivel_postos": false
+    },
+    {
+      "uf": "MT",
+      "postos": 79.0,
+      "peso_proprio": 0.8566433214,
+      "mae_local": 0.0831983049,
+      "mae_pooled": 0.083950841,
+      "mae_postos": 0.0830965272,
+      "ganho_pooled": -0.009045089,
+      "decidivel_pooled": false,
+      "ganho_postos": 0.0012233145,
+      "decidivel_postos": false
+    },
+    {
+      "uf": "RO",
+      "postos": 51.0,
+      "peso_proprio": 0.9042893793,
+      "mae_local": 0.0638161766,
+      "mae_pooled": 0.0634968715,
+      "mae_postos": 0.0638735954,
+      "ganho_pooled": 0.0050035141,
+      "decidivel_pooled": false,
+      "ganho_postos": -0.0008997531,
+      "decidivel_postos": false
+    }
+  ]
+}
